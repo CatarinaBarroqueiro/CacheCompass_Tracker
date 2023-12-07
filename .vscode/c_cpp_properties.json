@@ -1,0 +1,18 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/home/goncalo/.platformio/packages/framework-arduinoespressif32/cores/esp32",
+                "/home/goncalo/repos/CacheCompass_Tracker/nodes/**",
+                "/home/goncalo/repos/CacheCompass_Tracker/nodes/*",
+                "/home/goncalo/repos/CacheCompass_Tracker/nodes/shared/include"
+            ],
+            "defines": [],
+            "compilerPath": "/home/goncalo/.platformio/packages/toolchain-xtensa-esp32/bin/xtensa-esp32-elf-gcc",
+            "intelliSenseMode": "linux-gcc-x86"
+        }
+    ],
+    "version": 4
+}
