@@ -31,4 +31,6 @@
 *.out
 *.app
 
-*.code-workspace
+# VsCode folder
+.vscode
+.vscode/*
