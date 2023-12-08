@@ -40,7 +40,7 @@ export class UserController {
    
 
     @Post()
-    async postusers(@Body() user: { idUser: string, name: string, email: string, flag:boolean, password:string, admin:boolean}) {
+    async postusers(@Body() user: { idUser: number, name: string, email: string, flag:boolean, password:string, admin:boolean}) {
         try {
             return await this.usersservice.save(user);
         } catch (e) {

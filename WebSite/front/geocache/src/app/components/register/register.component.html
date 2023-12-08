@@ -1,0 +1,31 @@
+<div class="container">
+  <div class="card">
+    <div class="card-content">
+      <div class="photo-half">
+        <img src="assets/cover.png" alt="User Photo" class="user-photo">
+      </div>
+      <div class="form-half">
+        <header><b>Sign Up</b></header>
+        <form class="form-group">
+          <div class="form-field">
+            <label class="label" for="name">Name</label>
+            <input #regName id="name" type="text" placeholder="Name" required>
+          </div>
+          <div class="form-field">
+            <label class="label" for="email">E-Mail</label>
+            <input #regEmail id="email" type="email" placeholder="Email" required>
+          </div>
+          <div class="form-field">
+            <label class="label" for="confirmEmail">Confirm E-Mail</label>
+            <input #regConfirmEmail id="confirmEmail" type="email" placeholder="Confirm Email" required>
+          </div>
+          <div class="form-field">
+            <label for="password">Password</label>
+            <input #regPass id="password" type="password" placeholder="Password" required  required pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$">
+          </div>
+          <button type="button" class="submit-button" (click)="post()">Sign Up</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

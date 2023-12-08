@@ -13,16 +13,21 @@ export class DiscoveryService {
     }
 
     async findAll() {
-        return await this.discoveryRepository.find(
-            { loadRelationIds: true}
-        );
+        return await this.discoveryRepository.manager.query('Select * from "Discovery"');
     }
 
-    async save( discovery: { idDiscovery:string ,id_Box: string, id_user: string, discTime: string, authorized: boolean}) {
+    async save( discovery: { idDiscovery:number ,idBox: string, idUser: string, discTime: string, authorized: boolean}) {
         return await this.discoveryRepository.save(discovery);
     }
 
     async remove(idDiscovery: string) {
         return await this.discoveryRepository.delete(idDiscovery);
+    }
+
+    async findBox(idBoxS: string) {
+        return await this.discoveryRepository.find({
+            loadRelationIds: true,
+            where: { idBox: idBoxS }
+        });
     }
 }

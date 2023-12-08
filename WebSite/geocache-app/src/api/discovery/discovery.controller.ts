@@ -9,11 +9,12 @@ export class DiscoveryController {
     res;
     constructor(private readonly discService: DiscoveryService,private readonly appService: AppService) { }
 
+
     @Get()
     async getDiscovery(@Req() request: Request, @Headers() headers: { authorization: string }) {
       
         let api = {
-            op: 'Get Discovery',
+            op: 'Get Discoveries',
             date: moment().toString(),
             request: request,
             result: null,
@@ -37,10 +38,9 @@ export class DiscoveryController {
 
     }
 
-   
 
     @Post()
-    async postboxes(@Body()discovery: { idDiscovery:string ,id_Box: string, id_user: string, discTime: string, authorized: boolean}) {
+    async postDiscovery(@Body()discovery: { idDiscovery:number ,idBox: string, idUser: string, discTime: string, authorized: boolean}) {
         try {
             return await this.discService.save(discovery);
         } catch (e) {
@@ -50,7 +50,7 @@ export class DiscoveryController {
     }
 
     @Delete()
-    async deleteboxs(@Query('idDiscovery') idDiscovery: string) {
+    async deleteDiscovery(@Query('idDiscovery') idDiscovery: string) {
         try {
             return await this.discService.remove(idDiscovery);
         } catch (e) {

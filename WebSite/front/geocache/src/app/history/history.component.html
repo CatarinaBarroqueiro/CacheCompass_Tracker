@@ -1,0 +1,39 @@
+<div class="back">
+    <br>
+<div class="geocache-table">
+    <br>
+    <h1 class="navbar-title"><b>History</b></h1>
+    <br>
+    <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+      <!-- User Column -->
+      <ng-container class="white" matColumnDef="user">
+        <th mat-header-cell *matHeaderCellDef> User </th>
+        <td mat-cell *matCellDef="let element"> {{element.idUser}} </td>
+      </ng-container>
+  
+      <!-- Timestamp Column -->
+      <ng-container matColumnDef="timestamp">
+        <th mat-header-cell *matHeaderCellDef> Timestamp </th>
+        <td mat-cell *matCellDef="let element"> {{element.discTime}} </td>
+      </ng-container>
+  
+      <!-- Cache ID Column -->
+      <ng-container matColumnDef="cacheId">
+        <th mat-header-cell *matHeaderCellDef> Cache ID </th>
+        <td mat-cell *matCellDef="let element"> {{element.idBox}} </td>
+      </ng-container>
+  
+      <!-- Location Column -->
+      <ng-container matColumnDef="location">
+        <th mat-header-cell *matHeaderCellDef> Location </th>
+        <td mat-cell *matCellDef="let element"> {{element.box}} </td>
+      </ng-container>
+  
+      <!-- Header and Row Definitions -->
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+  </div>
+</div>
+
+  

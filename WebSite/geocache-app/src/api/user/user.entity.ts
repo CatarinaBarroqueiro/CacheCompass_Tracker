@@ -1,20 +1,20 @@
-import { Column, Entity, JoinColumn, JoinTable, ManyToMany, OneToOne, PrimaryColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, JoinTable, ManyToMany, OneToOne, PrimaryColumn, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity({ name: 'User' })
 export class User {
-    @PrimaryColumn()
-    public idUser: string;
+    @PrimaryGeneratedColumn()
+    public idUser: number;
 
-    @Column()
+    @Column( {nullable:false})
     public name: string;
 
-    @Column()
+    @Column({nullable:false})
     public email: string;
 
     @Column()
     public flag: boolean;
 
-    @Column()
+    @Column({nullable:false})
     public password: string;
 
     @Column()

@@ -1,0 +1,22 @@
+.custom-dialog-actions {
+    display: flex;
+    justify-content: center;
+  }
+  
+/* If using CSS */
+.close-button {
+    border: 0;
+    border-radius: 10%;
+    background-color: rgba(0, 255, 255, 0.502);
+    color: rgb(14, 4, 4);
+  }
+  
+  .close-button {
+    background-color: rgba(3, 191, 191, 0.694);
+    color: rgb(20, 4, 4);
+  
+    &:hover {
+      background-color: rgba(2, 135, 135, 0.502);
+    }
+  }
+  

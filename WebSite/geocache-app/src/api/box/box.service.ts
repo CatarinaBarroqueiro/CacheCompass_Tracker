@@ -18,7 +18,7 @@ export class BoxService {
         );
     }
 
-    async save( box: { idBox: string, local: string}) {
+    async save( box: { idBox: number, local: string}) {
         return await this.boxRepository.save(box);
     }
 

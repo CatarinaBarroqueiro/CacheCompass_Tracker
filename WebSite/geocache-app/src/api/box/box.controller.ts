@@ -40,7 +40,7 @@ export class BoxController {
    
 
     @Post()
-    async postboxes(@Body()box: { idBox: string, local: string}) {
+    async postboxes(@Body()box: { idBox: number, local: string}) {
         try {
             return await this.boxService.save(box);
         } catch (e) {

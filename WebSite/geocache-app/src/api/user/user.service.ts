@@ -18,7 +18,7 @@ export class UserService {
         );
     }
 
-    async save( user: { idUser: string, name: string, email: string, flag:boolean, password:string, admin:boolean}) {
+    async save( user: { idUser: number, name: string, email: string, flag:boolean, password:string, admin:boolean}) {
         return await this.usersRepository.save(user);
     }
 

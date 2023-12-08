@@ -1,25 +1,23 @@
-import { Column, Entity, JoinColumn, JoinTable, ManyToMany, OneToOne, PrimaryColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToOne, PrimaryColumn,PrimaryGeneratedColumn } from 'typeorm';
 import { User } from '../user/user.entity';
 import { Box } from '../box/box.entity';
 
 @Entity({ name: 'Discovery' })
 export class Discovery {
-    @PrimaryColumn()
-    public idDiscovery: string;
+    @PrimaryGeneratedColumn()    
+    public idDiscovery: number;
 
-    @ManyToMany(() => Box)
+    @ManyToOne(() => Box, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'idBox' })
-    public id_box: string;
-
-    @ManyToMany(() => User)
+    public box: Box;
+  
+    @ManyToOne(() => User, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'idUser' })
-    public id_user: string;
+    public user: User;
 
     @Column({ default: () => 'CURRENT_TIMESTAMP' })
     discTime: string;
 
     @Column()
     public authorized: boolean;
-
-
 }

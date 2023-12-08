@@ -1,0 +1,29 @@
+<div class="container">
+  <div class="card">
+    <div class="card-content">
+      <div class="photo-half">
+        <img src="assets/cover.png" alt="User Photo" class="user-photo">
+      </div>
+      <div class="form-half">
+        <br>
+        <br>
+        <header><b>LOGIN</b></header>
+        <form class="form-group">
+          <div class="form-field">
+            <label class="label" for="email">E-Mail</label>
+            <input #email id="email" type="email" placeholder="Email">
+          </div>
+          <div class="form-field">
+            <label for="password">Password</label>
+            <input #password id="password" type="password" placeholder="Password">
+          </div>
+          <button type="button" class="submit-button" (click)="verify()">Submit</button>
+          <br>
+          <div class="register-link">
+            <p class="white-text">Don't have any account? <a class="white-text" href="/register">Sign Up here</a></p>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

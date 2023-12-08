@@ -1,0 +1,38 @@
+/* navbar.component.css */
+
+.navbar-card {
+  padding: 10px;
+  min-height: 80px;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  background-color: #000;
+  -webkit-box-shadow: -2px 21px 62px -10px rgba(0,0,0,1);
+  -moz-box-shadow: -2px 21px 62px -10px rgba(0,0,0,1);
+  box-shadow: -2px 21px 62px -10px rgba(0,0,0,1);
+}
+
+.navbar-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  color: #fff;
+}
+
+.navbar-icon {
+  display: flex; /* Set to flex to make the icon and title inline */
+  align-items: center; /* Align items vertically in the center */
+}
+
+.app-icon {
+  width: 40px;
+  height: 40px;
+  margin-right: 10px; /* Add margin between icon and title */
+}
+
+.navbar-title {
+  font-size: 24px;
+  margin: 0;
+  color: #fff;
+}

@@ -1,0 +1,29 @@
+.navbar-title {
+    font-size: 24px;
+    margin: 0;
+    color: #fff;
+  }
+  
+.geocache-table {
+    min-height: 80vh;
+    width: 50%;
+    margin: 20px auto; 
+    color: #fff;
+  }
+
+  .back {
+    min-height: 100%;
+    background-color: rgba(0, 0, 0, 0.502);
+    background-image: url('/assets/back.png'); 
+    background-size: cover;
+    background-position: center;
+}
+
+.mat-elevation-z8 {
+  background-color: rgba(216, 213, 213, 0.189) !important;
+  color: #ffffff !important; /* White text color */
+  box-shadow: none !important; /* Remove the default box shadow for a cleaner look */
+}
+
+
+
