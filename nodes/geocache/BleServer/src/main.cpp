@@ -12,7 +12,7 @@ BLEServer *pServer = NULL;
 void setup() {
   Serial.begin(115200);
 
-  BLEDevice::init("ESP32_1"); // Nome do dispositivo anunciador
+  BLEDevice::init("ESP32_1"); // Name of the announcer
   BLEServer *pServer = BLEDevice::createServer();
 
   BLEAdvertising *pAdvertising = pServer->getAdvertising();
@@ -23,6 +23,9 @@ void setup() {
 }
 
 void loop() {
-  // Outras lógicas do seu código aqui
-    delay(2000);
+    // BLEAdvertising *pAdvertising = pServer->getAdvertising();
+    // pAdvertising->start();
+    // delay(2000); // Advertise for 2 seconds (adjust as needed)
+    // pAdvertising->stop();
+    delay(2000); // Wait for 2 seconds before the next advertising cycle
 }

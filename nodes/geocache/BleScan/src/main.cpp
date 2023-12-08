@@ -14,34 +14,39 @@
 BLEScan* pBLEScan;
 
 class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
+public:
     void onResult(BLEAdvertisedDevice advertisedDevice) {
         if (advertisedDevice.haveRSSI() && advertisedDevice.haveServiceUUID() && advertisedDevice.isAdvertisingService(BLEUUID(SERVICE_UUID))) {
             Serial.print("Dispositivo encontrado: ");
             Serial.println(advertisedDevice.toString().c_str());
-            int rssi = advertisedDevice.getRSSI();
-            Serial.print("RSSI: ");
-            Serial.println(rssi);
-
-            // Cálculo da distância usando a fórmula do modelo de atenuação do caminho
-            float distance = pow(10, ((RSSI_0 - rssi) / (10.0 * N)));
-            Serial.print("Distância estimada: ");
-            Serial.println(distance);
+            calculateAndPrintDistance(advertisedDevice);
         }
+    }
+
+private:
+    void calculateAndPrintDistance(BLEAdvertisedDevice& device) {
+        int rssi = device.getRSSI();
+        Serial.print("RSSI: ");
+        Serial.print(rssi);
+        Serial.println(" dBm");
+
+        float distance = pow(10, ((RSSI_0 - rssi) / (10.0 * N)));
+        Serial.print("Distância estimada: ");
+        Serial.println(distance);
     }
 };
 void setup() {
     Serial.begin(115200);
 
-    BLEDevice::init("ESP32_2"); // Nome do dispositivo scanner
-
-    pBLEScan = BLEDevice::getScan(); // Inicializar BLE Scan
+    BLEDevice::init("ESP32_2"); // Scanner BLE
+    pBLEScan = BLEDevice::getScan(); // Initialize BLE scan object
     pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
     pBLEScan->setActiveScan(true);
 }
 
 void loop() {
-    BLEScanResults foundDevices = pBLEScan->start(5); // Escaneia por 5 segundos
-
-    pBLEScan->clearResults(); // Limpa os resultados para o próximo scan
-    delay(2000); // Intervalo entre os scans
+    // Scan devices for 1 sec and delay for 1 sec
+    BLEScanResults foundDevices = pBLEScan->start(1);
+    pBLEScan->clearResults();  
+    delay(1000); // Delay: save energy and wait for person to move
 }
