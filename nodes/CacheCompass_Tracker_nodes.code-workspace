@@ -1,0 +1,21 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		},
+		{
+			"name": "broker",
+			"path": "broker"
+		}
+	],
+	"settings": {
+		"editor.formatOnSave": true,
+		"files.associations": {
+			"array": "cpp",
+			"string_view": "cpp",
+			"initializer_list": "cpp",
+			"utility": "cpp",
+			"system_error": "cpp"
+		}
+	}
+}
