@@ -1,6 +1,6 @@
 #include <lora.h>
 
-LoRa868::LoRa868(uint16_t nodeId, bool applyDutyCycle = true) {
+LoRa868::LoRa868(uint16_t nodeId, bool applyDutyCycle) {
     this->dutyCycleEnabled = applyDutyCycle;
     this->nodeId = nodeId;
 

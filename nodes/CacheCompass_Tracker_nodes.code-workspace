@@ -19,7 +19,12 @@
 			"string_view": "cpp",
 			"initializer_list": "cpp",
 			"utility": "cpp",
-			"system_error": "cpp"
+			"system_error": "cpp",
+			"functional": "cpp",
+			"istream": "cpp",
+			"ostream": "cpp",
+			"tuple": "cpp",
+			"type_traits": "cpp"
 		},
 		"cSpell.words": [
 			"GPIO",

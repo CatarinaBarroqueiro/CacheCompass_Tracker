@@ -101,7 +101,9 @@ void loop() {
         uint8_t buffer[LORA_PAYLOAD];
         uint8_t recSize = lora.receive(buffer);
 
-        String authorization = msgClass.get_authorized(buffer);
+        String authorization = msgClass.get_authorized(buffer, recSize)
+                                   ? "Authorized"
+                                   : "Unauthorized";
         Serial.printf("Player ID %d, %s to open node %d", 1,
                       authorization.c_str(), 1);
     } else
