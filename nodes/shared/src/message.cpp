@@ -109,3 +109,10 @@ MESSAGE_TYPE Message::get_type(uint8_t* message, size_t messageSize) {
 
     return static_cast<MESSAGE_TYPE>(type);
 }
+
+static MESSAGE_TYPE Message::get_type(uint8_t* message, size_t messageSize){}
+static uint16_t Message::get_node_id(uint8_t* message, size_t messageSize){}
+static uint32_t Message::get_packet_id(uint8_t* message, size_t messageSize){}
+static uint16_t Message::get_user_id(uint8_t* message, size_t messageSize){}
+static long Message::get_timestamp(uint8_t* message, size_t messageSize){}
+static bool Message::get_authorized(uint8_t* message, size_t messageSize){}

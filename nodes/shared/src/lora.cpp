@@ -92,6 +92,9 @@ bool LoRa868::connected() {
     uint8_t* msgToSend = msgClass.hello(size, nodeId, TxPacketCount);
     send(msgToSend, size);
 
+    // free the created message
+    msgClass.free_message(msgToSend);
+
     // Wait for a response from the Broker
     uint8_t response[LORA_PAYLOAD];
     uint8_t received = receive(response);

@@ -39,7 +39,7 @@ class Message {
 
     //! Attention, this function returns a memory allocated pointer, please FREE it!
     uint8_t* open_request(size_t& size, uint16_t nodeId, uint32_t packetId,
-                          uint16_t userId, long timestamp);
+                          uint16_t userId, unsigned long timestamp);
 
     //! Attention, this function returns a memory allocated pointer, please FREE it!
     uint8_t* open_response(size_t& size, uint16_t nodeId, uint32_t packetId,
@@ -50,4 +50,9 @@ class Message {
                                uint32_t packetId);
 
     static MESSAGE_TYPE get_type(uint8_t* message, size_t messageSize);
+    static uint16_t get_node_id(uint8_t* message, size_t messageSize);
+    static uint32_t get_packet_id(uint8_t* message, size_t messageSize);
+    static uint16_t get_user_id(uint8_t* message, size_t messageSize);
+    static unsigned long get_timestamp(uint8_t* message, size_t messageSize);
+    static bool get_authorized(uint8_t* message, size_t messageSize);
 };
