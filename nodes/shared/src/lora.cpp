@@ -207,6 +207,10 @@ uint8_t LoRa868::receive(uint8_t* buffer) {
     return packetSize;
 }
 
-bool LoRa868::configured() {
+bool LoRa868::get_configDone() {
     return configDone;
+}
+
+int LoRa868::get_tx_packet_count() {
+    return TxPacketCount;
 }

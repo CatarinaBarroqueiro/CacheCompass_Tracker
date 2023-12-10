@@ -50,9 +50,14 @@ class Message {
                                uint32_t packetId);
 
     static MESSAGE_TYPE get_type(uint8_t* message, size_t messageSize);
+
     static uint16_t get_node_id(uint8_t* message, size_t messageSize);
+
     static uint32_t get_packet_id(uint8_t* message, size_t messageSize);
+
     static uint16_t get_user_id(uint8_t* message, size_t messageSize);
+
     static unsigned long get_timestamp(uint8_t* message, size_t messageSize);
+    
     static bool get_authorized(uint8_t* message, size_t messageSize);
 };

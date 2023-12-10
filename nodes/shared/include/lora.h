@@ -101,5 +101,6 @@ class LoRa868 {
     bool terminate();
     uint8_t receive(uint8_t* buffer);
 
-    bool configured() { return configDone; }
+    bool get_configDone();
+    int get_tx_packet_count();
 };

@@ -6,6 +6,10 @@
 		{
 			"name": "broker",
 			"path": "broker"
+		},
+		{
+			"name": "geocache",
+			"path": "geocache"
 		}
 	],
 	"settings": {
