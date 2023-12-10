@@ -16,6 +16,14 @@
 			"initializer_list": "cpp",
 			"utility": "cpp",
 			"system_error": "cpp"
-		}
+		},
+		"cSpell.words": [
+			"GPIO",
+			"LDRO",
+			"MOSI",
+			"NRESET",
+			"REDLED",
+			"RSSI"
+		]
 	}
 }

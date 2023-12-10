@@ -49,5 +49,5 @@ class Message {
     uint8_t* open_response_ack(size_t& size, uint16_t nodeId,
                                uint32_t packetId);
 
-    MESSAGE_TYPE get_type(uint8_t* message, size_t messageSize);
+    static MESSAGE_TYPE get_type(uint8_t* message, size_t messageSize);
 };
