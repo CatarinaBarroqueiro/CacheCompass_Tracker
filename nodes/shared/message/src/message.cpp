@@ -9,6 +9,9 @@ Message::~Message() {
 void Message::free_message(uint8_t* messagePtr) {
     if (messagePtr != NULL)
         free(messagePtr);
+
+    if (lastMessagePtr == messagePtr)
+        lastMessagePtr = NULL;
 }
 
 uint8_t* Message::save_message_memory(uint8_t* message, size_t size) {
@@ -18,7 +21,7 @@ uint8_t* Message::save_message_memory(uint8_t* message, size_t size) {
 }
 
 uint8_t* Message::hello(size_t& size, uint16_t nodeId, uint32_t packetId) {
-    size = MESSAGE_NODE_ID_SIZE + MESSAGE_PACKET_ID_SIZE;
+    size = MESSAGE_TYPE_SIZE + MESSAGE_NODE_ID_SIZE + MESSAGE_PACKET_ID_SIZE;
     uint8_t tempMessage[MAX_MESSAGE_SIZE];
 
     // Place the header in the new message
@@ -33,7 +36,7 @@ uint8_t* Message::hello(size_t& size, uint16_t nodeId, uint32_t packetId) {
 
 uint8_t* Message::hello_response(size_t& size, uint16_t nodeId,
                                  uint32_t packetId) {
-    size = MESSAGE_NODE_ID_SIZE + MESSAGE_PACKET_ID_SIZE;
+    size = MESSAGE_TYPE_SIZE + MESSAGE_NODE_ID_SIZE + MESSAGE_PACKET_ID_SIZE;
     uint8_t tempMessage[MAX_MESSAGE_SIZE];
 
     // Place the header in the new message
@@ -48,7 +51,7 @@ uint8_t* Message::hello_response(size_t& size, uint16_t nodeId,
 
 uint8_t* Message::open_request(size_t& size, uint16_t nodeId, uint32_t packetId,
                                uint16_t userId, unsigned long timestamp) {
-    size = MESSAGE_NODE_ID_SIZE + MESSAGE_PACKET_ID_SIZE +
+    size = MESSAGE_TYPE_SIZE + MESSAGE_NODE_ID_SIZE + MESSAGE_PACKET_ID_SIZE +
            MESSAGE_USER_ID_SIZE + MESSAGE_TIMESTAMP_SIZE;
     uint8_t tempMessage[MAX_MESSAGE_SIZE];
 
@@ -70,8 +73,8 @@ uint8_t* Message::open_request(size_t& size, uint16_t nodeId, uint32_t packetId,
 
 uint8_t* Message::open_response(size_t& size, uint16_t nodeId,
                                 uint32_t packetId, bool authorized) {
-    size =
-        MESSAGE_NODE_ID_SIZE + MESSAGE_PACKET_ID_SIZE + MESSAGE_AUTHORIZED_SIZE;
+    size = MESSAGE_TYPE_SIZE + MESSAGE_NODE_ID_SIZE + MESSAGE_PACKET_ID_SIZE +
+           MESSAGE_AUTHORIZED_SIZE;
     uint8_t tempMessage[MAX_MESSAGE_SIZE];
 
     // Place the header in the new message
@@ -81,7 +84,7 @@ uint8_t* Message::open_response(size_t& size, uint16_t nodeId,
     memcpy(tempMessage + (MESSAGE_TYPE_SIZE + MESSAGE_NODE_ID_SIZE), &packetId,
            MESSAGE_PACKET_ID_SIZE);
     memcpy(tempMessage + (MESSAGE_TYPE_SIZE + MESSAGE_NODE_ID_SIZE +
-                          MESSAGE_AUTHORIZED_SIZE),
+                          MESSAGE_PACKET_ID_SIZE),
            &authorized, MESSAGE_AUTHORIZED_SIZE);
 
     return save_message_memory(tempMessage, size);
@@ -89,7 +92,7 @@ uint8_t* Message::open_response(size_t& size, uint16_t nodeId,
 
 uint8_t* Message::open_response_ack(size_t& size, uint16_t nodeId,
                                     uint32_t packetId) {
-    size = MESSAGE_NODE_ID_SIZE + MESSAGE_PACKET_ID_SIZE;
+    size = MESSAGE_TYPE_SIZE + MESSAGE_NODE_ID_SIZE + MESSAGE_PACKET_ID_SIZE;
     uint8_t tempMessage[MAX_MESSAGE_SIZE];
 
     // Place the header in the new message

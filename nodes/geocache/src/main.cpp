@@ -104,10 +104,12 @@ void loop() {
         String authorization = msgClass.get_authorized(buffer, recSize)
                                    ? "Authorized"
                                    : "Unauthorized";
-        Serial.printf("Player ID %d, %s to open node %d", 1,
+        Serial.printf(" - Player ID %d, %s to open node %d", 1,
                       authorization.c_str(), 1);
     } else
         Serial.println("GeoCache not connected to LORA receiver");
+
+    Serial.println();
 
     delay(5000);
 }

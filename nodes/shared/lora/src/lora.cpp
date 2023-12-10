@@ -98,9 +98,10 @@ bool LoRa868::connected() {
     // Wait for a response from the Broker
     uint8_t response[LORA_PAYLOAD];
     uint8_t received = receive(response);
+
+    Serial.println();
     // Check if the response is a Hello response
-    if (received > 0 &&
-        msgClass.get_type(response, LORA_PAYLOAD) == HELLO_RESPONSE)
+    if (received > 0 && msgClass.get_type(response, received) == HELLO_RESPONSE)
         return true;
     else
         return false;

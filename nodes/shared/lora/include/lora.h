@@ -64,9 +64,9 @@ class LoRa868 {
     // LoRa Tx power
     const int8_t TxPower = 10;
     // Timeout on Received, to wait for a packet
-    const uint32_t RxTimeoutMs = 10000;
+    const uint32_t RxTimeoutMs = 5000;
     // Timeout on Transmitter, to wait for a packet
-    const uint32_t TxTimeoutMs = 5000;
+    const uint32_t TxTimeoutMs = 2500;
     /*
         ######################################################################
         ############          End LoRa modem parameters           ############
