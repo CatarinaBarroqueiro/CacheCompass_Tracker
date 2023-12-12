@@ -38,9 +38,49 @@ export class DiscoveryController {
 
     }
 
+    @Get('/idDis')
+    async getIdDiscovery(@Query('idDis') idDis : number) {
+        try{
+           return await this.discService.findDiscovery(idDis) 
+        }catch(e){
+            console.log(e)
+            return "Get Discovery failed";
+        }   
+    }
+
+    @Get('/user')
+    async getUserDisc(@Query('user') idUser : number) {
+        try{
+           return await this.discService.findDiscUser(idUser) 
+        }catch(e){
+            console.log(e)
+            return "Get User Discovery failed";
+        }   
+    }
+
+    @Get('/box')
+    async getBoxDisc(@Query('box') idBox : number) {
+        try{
+           return await this.discService.findDiscBox(idBox) 
+        }catch(e){
+            console.log(e)
+            return "Get Box Discovery failed";
+        }   
+    }
+
+    @Get('/auth')
+    async getAuth(@Query('auth') auth : boolean) {
+        try{
+           return await this.discService.findDiscAuth(auth) 
+        }catch(e){
+            console.log(e)
+            return "Get Authorized/Non-Authorized Discovery failed";
+        }   
+    }
+
 
     @Post()
-    async postDiscovery(@Body()discovery: { idDiscovery:number ,idBox: string, idUser: string, discTime: string, authorized: boolean}) {
+    async postDiscovery(@Body()discovery: { idDiscovery:number ,idBox: number, idUser: number, discTime: string, authorized: boolean}) {
         try {
             return await this.discService.save(discovery);
         } catch (e) {

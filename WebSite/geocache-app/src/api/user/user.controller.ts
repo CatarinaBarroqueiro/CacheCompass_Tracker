@@ -33,11 +33,48 @@ export class UserController {
             this.res = this.appService.handleResponse(false, 'Server error! ❌️', HttpStatus.INTERNAL_SERVER_ERROR, api);
         }
         return this.res;
-
-
     }
 
-   
+    @Get('/id')
+    async getUser(@Query('id') id : number) {
+        try{
+           return await this.usersservice.findUser(id) 
+        }catch(e){
+            console.log(e)
+            return "Get Id User failed";
+        }   
+    }
+
+    @Get('/name')
+    async getName(@Query('name') name : string) {
+        try{
+           return await this.usersservice.findName(name) 
+        }catch(e){
+            console.log(e)
+            return "Get Name failed";
+        }   
+    }
+
+
+    @Get('/email')
+    async getEmail(@Query('email') email : string) {
+        try{
+           return await this.usersservice.findEmail(email) 
+        }catch(e){
+            console.log(e)
+            return "Get Email failed";
+        }   
+    }
+
+    @Get('/admin')
+    async getAdmin(@Query('admin') admin : boolean) {
+        try{
+           return await this.usersservice.findAdmin(admin) 
+        }catch(e){
+            console.log(e)
+            return "Get Email failed";
+        }   
+    }
 
     @Post()
     async postusers(@Body() user: { idUser: number, name: string, email: string, flag:boolean, password:string, admin:boolean}) {

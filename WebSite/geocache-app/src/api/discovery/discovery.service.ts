@@ -16,7 +16,36 @@ export class DiscoveryService {
         return await this.discoveryRepository.manager.query('Select * from "Discovery"');
     }
 
-    async save( discovery: { idDiscovery:number ,idBox: string, idUser: string, discTime: string, authorized: boolean}) {
+    async findDiscovery(idDiscSearched: number) {
+        return await this.discoveryRepository.find({
+            loadRelationIds: true,
+            where: { idDiscovery: idDiscSearched }
+        });
+    }
+
+    async findDiscBox(idBoxSearched: number) {
+        return await this.discoveryRepository.find({
+            loadRelationIds: true,
+            where: { box: idBoxSearched } as any,
+        });
+    }
+    
+    async findDiscUser(idUserSearched: number) {
+        return await this.discoveryRepository.find({
+            loadRelationIds: true,
+            where: { user: idUserSearched } as any,
+        });
+    }
+
+    async findDiscAuth(authSearched: boolean) {
+        return await this.discoveryRepository.find({
+            loadRelationIds: true,
+            where: { authorized: authSearched }
+        });
+    }
+
+
+    async save( discovery: { idDiscovery:number ,idBox: number, idUser: number, discTime: string, authorized: boolean}) {
         return await this.discoveryRepository.save(discovery);
     }
 
@@ -24,10 +53,4 @@ export class DiscoveryService {
         return await this.discoveryRepository.delete(idDiscovery);
     }
 
-    async findBox(idBoxS: string) {
-        return await this.discoveryRepository.find({
-            loadRelationIds: true,
-            where: { idBox: idBoxS }
-        });
-    }
 }

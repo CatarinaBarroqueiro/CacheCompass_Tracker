@@ -18,6 +18,20 @@ export class BoxService {
         );
     }
 
+    async findBox(idBoxSearched: number) {
+        return await this.boxRepository.find({
+            loadRelationIds: true,
+            where: { idBox: idBoxSearched }
+        });
+    }
+
+    async findLocal(localSearched: string) {
+        return await this.boxRepository.find({
+            loadRelationIds: true,
+            where: { local: localSearched }
+        });
+    }
+
     async save( box: { idBox: number, local: string}) {
         return await this.boxRepository.save(box);
     }

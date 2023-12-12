@@ -18,6 +18,34 @@ export class UserService {
         );
     }
 
+    async findUser(idUserSearched: number) {
+        return await this.usersRepository.find({
+            loadRelationIds: true,
+            where: { idUser: idUserSearched }
+        });
+    }
+
+    async findName(nameSearched: string) {
+        return await this.usersRepository.find({
+            loadRelationIds: true,
+            where: { name: nameSearched }
+        });
+    }
+
+    async findEmail(emailSearched: string) {
+        return await this.usersRepository.find({
+            loadRelationIds: true,
+            where: { email: emailSearched }
+        });
+    }
+
+    async findAdmin(adminSearched: boolean) {
+        return await this.usersRepository.find({
+            loadRelationIds: true,
+            where: { admin: adminSearched }
+        });
+    }
+
     async save( user: { idUser: number, name: string, email: string, flag:boolean, password:string, admin:boolean}) {
         return await this.usersRepository.save(user);
     }

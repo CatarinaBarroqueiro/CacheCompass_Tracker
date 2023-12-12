@@ -9,11 +9,11 @@ export class Discovery {
 
     @ManyToOne(() => Box, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'idBox' })
-    public box: Box;
+    public box: Number;
   
     @ManyToOne(() => User, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'idUser' })
-    public user: User;
+    public user: Number;
 
     @Column({ default: () => 'CURRENT_TIMESTAMP' })
     discTime: string;

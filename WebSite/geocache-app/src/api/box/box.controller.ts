@@ -37,6 +37,25 @@ export class BoxController {
 
     }
 
+    @Get('/local')
+    async getLocal(@Query('local') local : string) {
+        try{
+           return await this.boxService.findLocal(local) 
+        }catch(e){
+            console.log(e)
+            return "Get Local failed";
+        }   
+    }
+
+    @Get('/idBox')
+    async getBox(@Query('idBox') idBox : number) {
+        try{
+           return await this.boxService.findBox(idBox) 
+        }catch(e){
+            console.log(e)
+            return "Get Box failed";
+        }   
+    }
    
 
     @Post()
