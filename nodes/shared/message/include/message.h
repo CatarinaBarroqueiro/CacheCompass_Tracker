@@ -45,7 +45,6 @@ enum MESSAGE_TYPE {
 //! Class for managing message creation and extraction
 class Message {
    private:
-
     /*!
     Allocate memory and save the message in the HEAP, don't forget to `free it`!
       \param message Pointer to the message
@@ -60,7 +59,7 @@ class Message {
    public:
     Message();
     ~Message();
- 
+
     /*!
     Free the memory associated with the given message pointer
       \param messagePtr Pointer to the message memory to be freed
@@ -68,6 +67,22 @@ class Message {
       Updates the lastMessagePtr if it matches the message pointer being freed.
     */
     void free_message(uint8_t* messagePtr);
+
+    /*!
+    
+    /*!
+    Create a message with specified parameters in the HEAP, don't forget to `free` it!
+      \param size [out] Size of the message created
+      \param type Type of message to create
+      \param nodeId Node ID
+      \param packetId Packet ID
+      \param userId User ID
+      \param timestamp Timestamp associated with the message
+      \return Pointer to the created message
+    */
+    uint8_t* create_message(size_t& size, MESSAGE_TYPE type,
+                                     uint16_t nodeId, uint32_t packetId,
+                                     uint16_t userId, unsigned long timestamp);
 
     /*!
     Create a HELLO message in the HEAP, don't forget to `free it`!
