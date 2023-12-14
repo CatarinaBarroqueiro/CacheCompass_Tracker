@@ -101,11 +101,17 @@ void loop() {
         uint8_t buffer[LORA_PAYLOAD];
         uint8_t recSize = lora.receive(buffer);
 
-        String authorization = msgClass.get_authorized(buffer, recSize)
-                                   ? "Authorized"
-                                   : "Unauthorized";
-        Serial.printf(" - Player ID %d, %s to open node %d", 1,
-                      authorization.c_str(), 1);
+        Serial.println("Received message from broker: ");
+        print_packet_in_hex(buffer, recSize);
+        Serial.println();
+
+        Serial.printf("Status: %d", msgClass.get_authorized(buffer, recSize));
+        Serial.println();
+
+        if (msgClass.get_authorized(buffer, recSize))
+            Serial.printf(" - Player ID %d, Authorized to open node %d", 1, 1);
+        else
+            Serial.printf(" - Player ID %d, Authorized to open node %d", 1, 1);
     } else
         Serial.println("GeoCache not connected to LORA receiver");
 

@@ -42,6 +42,10 @@ enum MESSAGE_TYPE {
     ############              Message declaration                 ############
     ##########################################################################
 */
+
+//! Function used to print a packet in hexadecimal
+void print_packet_in_hex(uint8_t *buffer, uint8_t size);
+
 //! Class for managing message creation and extraction
 class Message {
    private:

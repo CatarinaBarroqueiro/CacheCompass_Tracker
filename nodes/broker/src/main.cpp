@@ -93,6 +93,10 @@ void process_lora_message(uint8_t* message, uint8_t size) {
         return;
     }
 
+    Serial.println(" - Message to send: ");
+    print_packet_in_hex(msgToSend, sendMsgSize);
+    Serial.println();
+
     // Send response to GeoCache
     lora.send(msgToSend, sendMsgSize);
 
@@ -111,7 +115,7 @@ void receive_lora(void* parameter) {
             process_lora_message(buffer, recSize);
             Serial.println();
         }
-        delay(200);
+        delay(50);
     }
     Serial.println("LoRa868, Receive task ended");
 }
