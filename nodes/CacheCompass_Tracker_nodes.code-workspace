@@ -28,9 +28,15 @@
 			"istream": "cpp",
 			"ostream": "cpp",
 			"tuple": "cpp",
-			"type_traits": "cpp"
+			"type_traits": "cpp",
+			"string": "cpp",
+			"deque": "cpp",
+			"unordered_map": "cpp",
+			"unordered_set": "cpp",
+			"vector": "cpp"
 		},
 		"cSpell.words": [
+			"BLEUUID",
 			"GPIO",
 			"LDRO",
 			"MOSI",

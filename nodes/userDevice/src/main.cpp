@@ -6,7 +6,6 @@
     ############                  Definitions                     ############
     ##########################################################################
 */
-#define NODE_ID 1
 #define USER_ID 1
 
 /*
@@ -21,7 +20,6 @@ BleClient bleClient;
     ############                     Functions                    ############
     ##########################################################################
 */
-String get_time_string(unsigned long timestamp);
 void setup();
 void loop();
 
@@ -30,8 +28,19 @@ void loop();
     ############                      Code                        ############
     ##########################################################################
 */
-void setup() {}
+void setup() {
+    // Initialize Serial Monitor
+    Serial.begin(115200);
+    while (!Serial)
+        ;
+    Serial.println("Device Terminal ready");
+    Serial.println();
+
+    bleClient.setup();
+}
 
 void loop() {
-    // put your main code here, to run repeatedly:
+
+
+    // use bleClient.send() to send a message to the server
 }
