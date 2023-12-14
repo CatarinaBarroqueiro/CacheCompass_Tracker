@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">CacheCompass_Tracker_App</string>
+    <string name="clear_button_label">Clear</string>
+
 </resources>

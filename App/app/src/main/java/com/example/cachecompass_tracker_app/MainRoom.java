@@ -11,12 +11,15 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.ParcelUuid;
 import android.os.Parcelable;
 import android.provider.Settings;
+import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -49,15 +52,23 @@ public class MainRoom extends AppCompatActivity {
     ListView scannedListView;
     ArrayList<String> deviceDetailsList = new ArrayList<>();
     ArrayAdapter<String> arrayAdapter;
-
     private static final int PERMISSION_REQUEST_BLUETOOTH_CONNECT = 100;
+    private Button buttonClear;
+
+    private Handler autoScanHandler;
+    private Runnable autoScanRunnable;
+    private static final long SCAN_PERIOD = 5000; // 5 seconds
+    private TextView tvCountdown;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_room);
         scannedListView = findViewById(R.id.scannedListView);
+        tvCountdown = findViewById(R.id.tvCountdown);
 
+        buttonClear = findViewById(R.id.buttonClear);
         buttonON = findViewById(R.id.buttonON);
         buttonOFF = findViewById(R.id.buttonOFF);
         scanButton = findViewById(R.id.buttonScan);
@@ -86,6 +97,27 @@ public class MainRoom extends AppCompatActivity {
 
         arrayAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1, deviceDetailsList);
         scannedListView.setAdapter(arrayAdapter);
+        autoScanHandler = new Handler();
+        autoScanRunnable = new Runnable() {
+            int countdown = 5; // 5 seconds countdown
+
+            @Override
+            public void run() {
+                if (countdown == 0) {
+                    if (mBluetoothAdapter != null && mBluetoothAdapter.isEnabled()) {
+                        startScan();
+                    }
+                    countdown = 5; // Reset countdown
+                } else {
+                    countdown--;
+                    runOnUiThread(() -> tvCountdown.setText(String.valueOf(countdown)));
+                    autoScanHandler.postDelayed(this, 1000); // Update every second
+                    return;
+                }
+
+                autoScanHandler.postDelayed(this, SCAN_PERIOD);
+            }
+        };
     }
 
     private void connectToDevice(BluetoothDevice device) {
@@ -319,6 +351,68 @@ public class MainRoom extends AppCompatActivity {
             }
 
         });
+    }
+
+    public void clearScannedList(View view) {
+        deviceDetailsList.clear(); // Limpa a lista de dispositivos
+        arrayAdapter.notifyDataSetChanged(); // Notifica o adaptador sobre a mudança
+        Toast.makeText(this, "Scanned list cleared", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        autoScanHandler.postDelayed(autoScanRunnable, SCAN_PERIOD);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        autoScanHandler.removeCallbacks(autoScanRunnable);
+    }
+
+    private void startScan() {
+        // Check for location permissions as they are required for Bluetooth scanning
+        if (ContextCompat.checkSelfPermission(getBaseContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(MainRoom.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+            return;
+        }
+        if (ContextCompat.checkSelfPermission(getBaseContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(MainRoom.this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
+            return;
+        }
+
+        // Check if Bluetooth is enabled
+        if (!mBluetoothAdapter.isEnabled()) {
+            if (ContextCompat.checkSelfPermission(getBaseContext(), Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(MainRoom.this, new String[]{Manifest.permission.BLUETOOTH_CONNECT}, 1);
+            }
+            startActivity(btEnablingIntent);
+            Toast.makeText(getApplicationContext(), "Enabling the Bluetooth", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        // Check if GPS is enabled
+        if (!CheckEnableGPS()) {
+            Toast.makeText(getApplicationContext(), "GPS Not Enabled, Please enable first", Toast.LENGTH_LONG).show();
+            Intent gpsIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+            startActivity(gpsIntent);
+            return;
+        }
+
+        // Start Discovery
+        try {
+            if (ContextCompat.checkSelfPermission(getBaseContext(), Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(MainRoom.this, new String[]{Manifest.permission.BLUETOOTH_SCAN}, 1);
+            }
+            if (mBluetoothAdapter.isDiscovering()) {
+                mBluetoothAdapter.cancelDiscovery();
+            }
+            scanCount = 1; // Adjust this value if needed
+            mBluetoothAdapter.startDiscovery();
+        } catch (Exception e) {
+            Toast.makeText(getApplicationContext(), "Exception, Scan Again", Toast.LENGTH_LONG).show();
+        }
     }
 
 }
