@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <bleServer.h>
 #include <lora.h>
 #include <message.h>
 
@@ -8,6 +9,7 @@
     ##########################################################################
 */
 #define NODE_ID 1
+#define USER_ID 1
 
 /*
     ##########################################################################
@@ -17,6 +19,7 @@
 LoRa868 lora(NODE_ID);
 TaskHandle_t loraTask;
 Message msgClass;
+BleServer bleServer(NODE_ID);
 
 /*
     ##########################################################################
@@ -67,6 +70,45 @@ void receive_lora(void* parameter) {
     Serial.println("LoRa868, Receive task ended");
 }
 
+bool fetch_authorized_open() {
+    if (lora.connected()) {
+        // Message to send variables
+        size_t sendMsgSize;
+        uint8_t* msgToSend = msgClass.open_request(sendMsgSize, NODE_ID,
+                                                   lora.get_tx_packet_count(),
+                                                   USER_ID, millis());
+        // Force wait for duty cycle completion
+        while (!lora.send(msgToSend, sendMsgSize))
+            delay(200);
+
+        /*Serial.println("Sending message from broker: ");
+        print_packet_in_hex(msgToSend, sendMsgSize);
+        Serial.println();*/
+
+        // Cleanup allocated message
+        msgClass.free_message(msgToSend);
+
+        uint8_t buffer[LORA_PAYLOAD];
+        uint8_t recSize = lora.receive(buffer);
+
+        if (msgClass.get_authorized(buffer, recSize))
+            Serial.printf(" - Player ID %d, Authorized to open node %d",
+                          msgClass.get_user_id(buffer, recSize),
+                          msgClass.get_node_id(buffer, recSize));
+        else
+            Serial.printf(" - Player ID %d, Authorized to open node %d",
+                          msgClass.get_user_id(buffer, recSize),
+                          msgClass.get_node_id(buffer, recSize));
+
+        return msgClass.get_authorized(buffer, recSize);
+    } else {
+        Serial.println("GeoCache not connected to LORA receiver");
+        return false;
+    }
+
+    Serial.println();
+}
+
 void setup() {
     // Initialize Serial Monitor
     Serial.begin(115200);
@@ -74,6 +116,8 @@ void setup() {
         ;
     Serial.println("GeoCache Terminal ready");
     Serial.println();
+
+    bleServer.setup();
 
     // Setup LoRa868
     while (!lora.configure(VERBOSE))
@@ -86,36 +130,11 @@ void setup() {
 }
 
 void loop() {
-    if (lora.connected()) {
-        // Message to send variables
-        size_t sendMsgSize;
-        uint8_t* msgToSend = msgClass.open_request(
-            sendMsgSize, 1, lora.get_tx_packet_count(), 1, millis());
-        // Force wait for duty cycle completion
-        while (!lora.send(msgToSend, sendMsgSize))
-            delay(200);
 
-        // Cleanup allocated message
-        msgClass.free_message(msgToSend);
-
-        uint8_t buffer[LORA_PAYLOAD];
-        uint8_t recSize = lora.receive(buffer);
-
-        Serial.println("Received message from broker: ");
-        print_packet_in_hex(buffer, recSize);
-        Serial.println();
-
-        Serial.printf("Status: %d", msgClass.get_authorized(buffer, recSize));
-        Serial.println();
-
-        if (msgClass.get_authorized(buffer, recSize))
-            Serial.printf(" - Player ID %d, Authorized to open node %d", 1, 1);
-        else
-            Serial.printf(" - Player ID %d, Authorized to open node %d", 1, 1);
-    } else
-        Serial.println("GeoCache not connected to LORA receiver");
-
-    Serial.println();
+    // When the user tries to connect using BLE
+    bool authorized = false;
+    if (true)
+        authorized = fetch_authorized_open();
 
     delay(5000);
 }

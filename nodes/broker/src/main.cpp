@@ -93,9 +93,9 @@ void process_lora_message(uint8_t* message, uint8_t size) {
         return;
     }
 
-    Serial.println(" - Message to send: ");
+    /*Serial.println(" - Message to send: ");
     print_packet_in_hex(msgToSend, sendMsgSize);
-    Serial.println();
+    Serial.println();*/
 
     // Send response to GeoCache
     lora.send(msgToSend, sendMsgSize);
