@@ -28,7 +28,8 @@ uint8_t* BleServer::read(uint8_t* len) {
 }
 
 void BleServer::setup() {
-    BLEDevice::init("GeoCache_" + nodeId);
+    String deviceName = "GeoCache_" + String(nodeId);
+    BLEDevice::init(deviceName.c_str());
     pServer = BLEDevice::createServer();
     pService = pServer->createService(SERVICE_UUID);
     pServer->setCallbacks(new MyBLEServerCallbacks(this));
@@ -45,5 +46,7 @@ void BleServer::setup() {
         0x06);  // functions that help with iPhone connections issue
     pAdvertising->setMinPreferred(0x12);
     BLEDevice::startAdvertising();
-    Serial.println("Gateway visible to other ble devices!");
+    
+    Serial.println("BLE, Gateway visible to other ble devices!");
+    Serial.println();
 }

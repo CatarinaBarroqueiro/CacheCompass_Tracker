@@ -12,7 +12,7 @@
 class BleServer {
    private:
     bool connected = false;
-    int nodeId;
+    int nodeId = 1;
     BLEServer* pServer;
     BLEService* pService;
     BLECharacteristic* pCharacteristic;
