@@ -12,7 +12,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="28dp"
-        android:text="Bluetooth Scanner"
+        android:text="Geocache Tracker"
         android:textSize="25dp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
@@ -22,7 +22,7 @@
 
 
 
-    <LinearLayout
+    <!--<LinearLayout
         android:id="@+id/buttonLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -44,14 +44,7 @@
             android:text="ON"
             tools:ignore="OnClick" />
 
-        <Button
-            android:id="@+id/buttonScan"
-            android:layout_width="100dp"
-            android:layout_height="48dp"
-            android:layout_margin="5dp"
-            android:onClick="onClick"
-            android:text="Scan"
-            tools:ignore="OnClick" />
+
 
         <Button
             android:id="@+id/buttonOFF"
@@ -62,32 +55,42 @@
             android:text="OFF"
             tools:ignore="OnClick" />
 
-    </LinearLayout>
+    </LinearLayout>-->
 
     <Button
         android:id="@+id/buttonClear"
         android:layout_width="100dp"
         android:layout_height="48dp"
-        android:layout_margin="5dp"
+        android:layout_marginTop="16dp"
         android:onClick="clearScannedList"
         android:text="Clear"
-        tools:ignore="MissingConstraints"
-        tools:layout_editor_absoluteX="324dp"
-        tools:layout_editor_absoluteY="150dp" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView" />
 
     <ListView
         android:id="@+id/scannedListView"
         android:layout_width="wrap_content"
-        android:layout_height="507dp"
+        android:layout_height="195dp"
+        android:layout_marginBottom="350dp"
         android:background="@color/white"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/buttonLayout"
-        app:layout_constraintVertical_bias="0.6"
-        tools:context=".MainActivity"></ListView>
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"></ListView>
 
-    <TextView
+    <ImageView
+        android:id="@+id/distanceIndicator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="300dp"
+        android:src="@drawable/radiowaves"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.492"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/buttonClear" />
+
+    <!--<TextView
         android:id="@+id/tvCountdown"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -96,6 +99,6 @@
         android:text="5"
         android:textSize="50dp"
         app:layout_constraintEnd_toEndOf="parent"
-        tools:ignore="MissingConstraints"/>
+        tools:ignore="MissingConstraints"/>-->
 
 </androidx.constraintlayout.widget.ConstraintLayout>
