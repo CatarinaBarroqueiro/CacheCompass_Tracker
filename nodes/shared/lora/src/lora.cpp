@@ -21,7 +21,8 @@ void LoRa868::packet_is_error(int16_t packetRSSI, int8_t packetSNR) {
     // check if the error occurred by an RX timeout
     if (IRQStatus & IRQ_RX_TIMEOUT) {
         // No error occurred - timeout
-        Serial.print(" Received Timeout on receive packet");
+        //Serial.println(" Received Timeout on receive packet");
+        ;
     } else {
         // Error occurred in receiving packet
         RxPacketCount++;
@@ -38,9 +39,8 @@ void LoRa868::packet_is_error(int16_t packetRSSI, int8_t packetSNR) {
         Serial.print(F(",IRQreg,"));
         Serial.print(IRQStatus, HEX);
         LoRa.printIrqStatus();  //print the names of the IRQ registers set
+        Serial.println();
     }
-
-    Serial.println();
 }
 
 bool LoRa868::configure(DEBUG_MODE mode) {
@@ -119,9 +119,9 @@ bool LoRa868::send(uint8_t* buffer, size_t size) {
         return false;
     }
 
-    Serial.printf(
+    /*Serial.printf(
         "LoRa868, Sending packet no. %d with %d bytes and %d dbm power... ",
-        TxPacketCount, size, TxPower);
+        TxPacketCount, size, TxPower);*/
 
     // Tick time before calling function to send
     unsigned long timeBeforeSending = millis();
@@ -138,7 +138,7 @@ bool LoRa868::send(uint8_t* buffer, size_t size) {
 
     if (bytesSent) {
         // Packet sent successfully
-        Serial.println("Packet Sent ");
+        //Serial.println("Packet Sent ");
         TxPacketCount++;
     } else {
         // Error in packet sending
@@ -199,9 +199,9 @@ uint8_t LoRa868::receive(uint8_t* buffer) {
         packet_is_error(packetRSSI, packetSNR);
     } else {
         // packet received successfully
-        Serial.printf("LoRa868, Received packet no. %d with %d bytes",
+        /*Serial.printf("LoRa868, Received packet no. %d with %d bytes",
                       RxPacketCount, packetSize);
-        Serial.println();
+        Serial.println();*/
         RxPacketCount++;
     }
 

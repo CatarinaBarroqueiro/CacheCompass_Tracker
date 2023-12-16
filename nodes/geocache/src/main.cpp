@@ -83,8 +83,8 @@ void receive_ble(void* parameter) {
         uint8_t len = 0;
         uint8_t* data = bleServer.read(&len);
         if (data != nullptr) {
-            Serial.printf("Receiving %d bytes from client...", len);
-            Serial.println();
+            //Serial.printf("Receiving %d bytes from client...", len);
+            //Serial.println();
             process_ble_message(data, len - BLE_INTERNAL_HEADER);
         }
         delay(50);
@@ -93,6 +93,10 @@ void receive_ble(void* parameter) {
 }
 
 void process_ble_message(uint8_t* data, uint8_t len) {
+    Serial.printf("BLE, user device sent: %s",
+                  bleMsgClass.to_string(data, len));
+    Serial.println();
+
     if (loraMsgClass.get_type(data, len) == OPENING_REQUEST) {
         int userId = bleMsgClass.get_user_id(data, len);
         bool authorized = fetch_authorized_open(userId);
@@ -100,7 +104,7 @@ void process_ble_message(uint8_t* data, uint8_t len) {
         if (authorized)
             open_box();
 
-        // work on sending a response to the user
+        // work on sending a response back to the user
     }
 }
 
@@ -118,24 +122,32 @@ bool fetch_authorized_open(int userId) {
         print_packet_in_hex(msgToSend, sendMsgSize);
         Serial.println();*/
 
+        Serial.printf("LoRa868, Sending message to broker: %s",
+                      loraMsgClass.to_string(msgToSend, sendMsgSize));
+        Serial.println();
+
         // Cleanup allocated message
         loraMsgClass.free_message(msgToSend);
 
         uint8_t buffer[LORA_PAYLOAD];
         uint8_t recSize = lora.receive(buffer);
 
+        Serial.printf("LoRa868, Received message from broker: %s",
+                      loraMsgClass.to_string(msgToSend, sendMsgSize));
+        Serial.println();
+
         if (loraMsgClass.get_authorized(buffer, recSize))
-            Serial.printf(" - Player ID %d, Authorized to open node %d",
+            Serial.printf("> Player ID %d, Authorized to open node %d",
                           loraMsgClass.get_user_id(buffer, recSize),
                           loraMsgClass.get_node_id(buffer, recSize));
         else
-            Serial.printf(" - Player ID %d, Authorized to open node %d",
+            Serial.printf("> Player ID %d, Authorized to open node %d",
                           loraMsgClass.get_user_id(buffer, recSize),
                           loraMsgClass.get_node_id(buffer, recSize));
 
         return loraMsgClass.get_authorized(buffer, recSize);
     } else {
-        Serial.println("GeoCache not connected to LORA receiver");
+        Serial.println("LoRa868, GeoCache not connected to Broker");
         return false;
     }
 
@@ -143,7 +155,7 @@ bool fetch_authorized_open(int userId) {
 }
 
 void open_box() {
-    Serial.println("Opening box");
+    Serial.println("->Opening box");
 }
 
 void setup() {
@@ -157,15 +169,15 @@ void setup() {
     // Setup BLE Server
     bleServer.setup();
 
-    // Create BLE Task to receive data
-    xTaskCreate(receive_ble, "receive_ble", 8000, NULL, 1, &bleTask);
-
     // Setup LoRa868
     while (!lora.configure(VERBOSE))
         delay(3000);
 
     // Create LoRa Task to receive data
     //xTaskCreate(receive_lora, "receive_lora", 8000, NULL, 1, &loraTask);
+
+    // Create BLE Task to receive data
+    xTaskCreate(receive_ble, "receive_ble", 8000, NULL, 1, &bleTask);
 
     Serial.println();
 }

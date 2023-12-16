@@ -63,9 +63,10 @@ void process_lora_message(uint8_t* message, uint8_t size) {
     size_t sendMsgSize;
     uint8_t* msgToSend;
 
+    Serial.printf("LoRa868, Received message from GeoCache: %s",
+                  msgClass.to_string(message, size));
+
     if (type == HELLO) {
-        Serial.printf(" - Hello received from nodeId %d", nodeId);
-        Serial.println();
         msgToSend = msgClass.hello_response(sendMsgSize, nodeId, packetId);
 
     } else if (type == OPENING_REQUEST) {
@@ -100,6 +101,9 @@ void process_lora_message(uint8_t* message, uint8_t size) {
     // Send response to GeoCache
     lora.send(msgToSend, sendMsgSize);
 
+    Serial.printf("LoRa868, Sending message to GeoCache: %s",
+                  msgClass.to_string(msgToSend, sendMsgSize));
+
     // free the created message
     msgClass.free_message(msgToSend);
 }
@@ -108,7 +112,7 @@ void receive_lora(void* parameter) {
     Serial.print("LoRa868, Receive task running on core ");
     Serial.println(xPortGetCoreID());
     for (;;) {
-        Serial.println("LoRa868, Waiting for data...");
+        //Serial.println("LoRa868, Waiting for data...");
         uint8_t buffer[LORA_PAYLOAD];
         uint8_t recSize = lora.receive(buffer);
         if (recSize > 0) {

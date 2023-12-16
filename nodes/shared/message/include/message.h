@@ -170,6 +170,14 @@ class LoraMessage {
       \return Authorization status extracted from the message
     */
     static bool get_authorized(uint8_t* message, size_t messageSize);
+
+    /*!
+    Transform a message into a string with it's contents
+      \param message Pointer to the message
+      \param messageSize Size of the message
+      \return String with the message contents
+    */
+    static String to_string(uint8_t* message, size_t messageSize);
 };
 
 /*
@@ -262,4 +270,12 @@ class BleMessage {
       \return Authorization status extracted from the message
     */
     static bool get_authorized(uint8_t* message, size_t messageSize);
+
+    /*!
+    Transform a message into a string with it's contents
+      \param message Pointer to the message
+      \param messageSize Size of the message
+      \return String with the message contents
+    */
+    static String to_string(uint8_t* message, size_t messageSize);
 };

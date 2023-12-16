@@ -31,7 +31,7 @@ class BleClient {
     boolean doScan = false;
     BLERemoteCharacteristic* pRemoteCharacteristic;
     BLEAdvertisedDevice* myDevice;
-    uint packetCounter = 0x00;
+    uint packetCounter = 0;
     uint16_t negotiatedMTU;
 
     static void notify_callback(
@@ -80,4 +80,6 @@ class BleClient {
     ~BleClient(){};
     void setup();
     void send(uint8_t* data, size_t size);
+
+    uint get_packet_count();
 };

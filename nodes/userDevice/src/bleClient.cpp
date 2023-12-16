@@ -98,7 +98,7 @@ void BleClient::setup() {
         delay(1000);
     }
 
-    while (!connect_to_server()) {
+    while (!connect_server()) {
         BLEDevice::getScan()->start(
             0);  // this is just example to start scan after disconnect, most likely there is better way to do it in arduino
         Serial.println("Attempting to connect to the BLE Server...");
@@ -106,4 +106,8 @@ void BleClient::setup() {
     }
     connected = true;
     Serial.println("Connected to the BLE Server");
+}
+
+uint BleClient::get_packet_count() {
+    return packetCounter;
 }
