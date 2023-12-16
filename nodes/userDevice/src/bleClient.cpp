@@ -70,8 +70,8 @@ void BleClient::send(uint8_t* data, size_t size) {
         pRemoteCharacteristic->writeValue(data, size);
 
         //printHEXPacket(message, 33); -- debugging
-        Serial.printf("Sending %d bytes to server...", size);
-        Serial.println(" ");
+        //Serial.printf("Sending %d bytes to server...", size);
+        //Serial.println(" ");
     } else {
         Serial.println("Client not connected to server!");
     }

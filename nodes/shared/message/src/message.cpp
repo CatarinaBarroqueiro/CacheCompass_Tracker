@@ -10,6 +10,25 @@ void print_packet_in_hex(uint8_t* buffer, uint8_t size) {
     }
 }
 
+String get_time_string(unsigned long timestamp) {
+    unsigned long seconds = timestamp % 60;
+    unsigned long minutes = (timestamp / 60) % 60;
+    unsigned long hours = (timestamp / 3600) % 24;
+
+    // Create a string in HH:MM:SS format
+    String timeString = "";
+    timeString += (hours < 10 ? "0" : "");
+    timeString += hours;
+    timeString += ":";
+    timeString += (minutes < 10 ? "0" : "");
+    timeString += minutes;
+    timeString += ":";
+    timeString += (seconds < 10 ? "0" : "");
+    timeString += seconds;
+
+    return timeString;
+}
+
 /*
     ##########################################################################
     ############            LoRa Message declaration              ############
@@ -228,7 +247,7 @@ String LoraMessage::to_string(uint8_t* message, size_t messageSize) {
         unsigned long timestamp = get_timestamp(message, messageSize);
         messageString = "Opening request from user " + String(userId) +
                         " for packet " + String(packetId) + " with timestamp " +
-                        String(timestamp);
+                        get_time_string(timestamp);
     } else if (messageType == OPENING_RESPONSE) {
         bool authorized = get_authorized(message, messageSize);
         messageString = "Opening response for packet " + String(packetId) +

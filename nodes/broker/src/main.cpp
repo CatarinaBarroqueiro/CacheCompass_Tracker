@@ -23,7 +23,6 @@ LoraMessage msgClass;
     ############                     Functions                    ############
     ##########################################################################
 */
-String get_time_string(unsigned long timestamp);
 void process_lora_message(uint8_t* message, uint8_t size);
 void receive_lora(void* parameter);
 void setup();
@@ -34,24 +33,6 @@ void loop();
     ############                      Code                        ############
     ##########################################################################
 */
-String get_time_string(unsigned long timestamp) {
-    unsigned long seconds = timestamp % 60;
-    unsigned long minutes = (timestamp / 60) % 60;
-    unsigned long hours = (timestamp / 3600) % 24;
-
-    // Create a string in HH:MM:SS format
-    String timeString = "";
-    timeString += (hours < 10 ? "0" : "");
-    timeString += hours;
-    timeString += ":";
-    timeString += (minutes < 10 ? "0" : "");
-    timeString += minutes;
-    timeString += ":";
-    timeString += (seconds < 10 ? "0" : "");
-    timeString += seconds;
-
-    return timeString;
-}
 
 void process_lora_message(uint8_t* message, uint8_t size) {
     // Received message general info
@@ -63,8 +44,8 @@ void process_lora_message(uint8_t* message, uint8_t size) {
     size_t sendMsgSize;
     uint8_t* msgToSend;
 
-    Serial.printf("LoRa868, Received message from GeoCache: %s",
-                  msgClass.to_string(message, size));
+    Serial.print("LoRa868, Received message from GeoCache: ");
+    Serial.println(msgClass.to_string(message, size));
 
     if (type == HELLO) {
         msgToSend = msgClass.hello_response(sendMsgSize, nodeId, packetId);
@@ -72,19 +53,13 @@ void process_lora_message(uint8_t* message, uint8_t size) {
     } else if (type == OPENING_REQUEST) {
         uint16_t userId = msgClass.get_user_id(message, size);
         unsigned long timestamp = msgClass.get_timestamp(message, size);
-        Serial.printf(
-            " - Open request received from nodeId %d for user %d at %s -> ",
-            nodeId, userId, get_time_string(timestamp));
 
         // change this to call remove service
         bool authorized = true;
 
-        Serial.println(authorized ? "Authorized" : "Unauthorized");
         msgToSend =
             msgClass.open_response(sendMsgSize, nodeId, packetId, authorized);
     } else if (type == OPENING_RESPONSE_ACK) {
-        Serial.printf(" - Open response ack received from nodeId %d", nodeId);
-        Serial.println();
         return;
     } else if (type == HELLO_RESPONSE || type == OPENING_RESPONSE) {
         ;  // do nothing
@@ -101,8 +76,8 @@ void process_lora_message(uint8_t* message, uint8_t size) {
     // Send response to GeoCache
     lora.send(msgToSend, sendMsgSize);
 
-    Serial.printf("LoRa868, Sending message to GeoCache: %s",
-                  msgClass.to_string(msgToSend, sendMsgSize));
+    Serial.printf("LoRa868, Sending message to GeoCache: ");
+    Serial.println(msgClass.to_string(msgToSend, sendMsgSize));
 
     // free the created message
     msgClass.free_message(msgToSend);

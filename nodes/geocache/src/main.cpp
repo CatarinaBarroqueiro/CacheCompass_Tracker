@@ -28,7 +28,6 @@ BleMessage bleMsgClass;
     ############                     Functions                    ############
     ##########################################################################
 */
-String get_time_string(unsigned long timestamp);
 void receive_lora(void* parameter);
 void receive_ble(void* parameter);
 void process_ble_message(uint8_t* data, uint8_t len);
@@ -42,24 +41,6 @@ void loop();
     ############                      Code                        ############
     ##########################################################################
 */
-String get_time_string(unsigned long timestamp) {
-    unsigned long seconds = timestamp % 60;
-    unsigned long minutes = (timestamp / 60) % 60;
-    unsigned long hours = (timestamp / 3600) % 24;
-
-    // Create a string in HH:MM:SS format
-    String timeString = "";
-    timeString += (hours < 10 ? "0" : "");
-    timeString += hours;
-    timeString += ":";
-    timeString += (minutes < 10 ? "0" : "");
-    timeString += minutes;
-    timeString += ":";
-    timeString += (seconds < 10 ? "0" : "");
-    timeString += seconds;
-
-    return timeString;
-}
 
 void receive_lora(void* parameter) {
     Serial.print("LoRa868, Receive task running on core ");
@@ -93,9 +74,8 @@ void receive_ble(void* parameter) {
 }
 
 void process_ble_message(uint8_t* data, uint8_t len) {
-    Serial.printf("BLE, user device sent: %s",
-                  bleMsgClass.to_string(data, len));
-    Serial.println();
+    Serial.print("BLE, user device sent: ");
+    Serial.println(bleMsgClass.to_string(data, len));
 
     if (loraMsgClass.get_type(data, len) == OPENING_REQUEST) {
         int userId = bleMsgClass.get_user_id(data, len);
@@ -122,9 +102,8 @@ bool fetch_authorized_open(int userId) {
         print_packet_in_hex(msgToSend, sendMsgSize);
         Serial.println();*/
 
-        Serial.printf("LoRa868, Sending message to broker: %s",
-                      loraMsgClass.to_string(msgToSend, sendMsgSize));
-        Serial.println();
+        Serial.print("LoRa868, Sending message to broker: ");
+        Serial.println(loraMsgClass.to_string(msgToSend, sendMsgSize));
 
         // Cleanup allocated message
         loraMsgClass.free_message(msgToSend);
@@ -132,18 +111,9 @@ bool fetch_authorized_open(int userId) {
         uint8_t buffer[LORA_PAYLOAD];
         uint8_t recSize = lora.receive(buffer);
 
-        Serial.printf("LoRa868, Received message from broker: %s",
-                      loraMsgClass.to_string(msgToSend, sendMsgSize));
+        Serial.print("LoRa868, Received message from broker: ");
+        Serial.println(loraMsgClass.to_string(buffer, recSize));
         Serial.println();
-
-        if (loraMsgClass.get_authorized(buffer, recSize))
-            Serial.printf("> Player ID %d, Authorized to open node %d",
-                          loraMsgClass.get_user_id(buffer, recSize),
-                          loraMsgClass.get_node_id(buffer, recSize));
-        else
-            Serial.printf("> Player ID %d, Authorized to open node %d",
-                          loraMsgClass.get_user_id(buffer, recSize),
-                          loraMsgClass.get_node_id(buffer, recSize));
 
         return loraMsgClass.get_authorized(buffer, recSize);
     } else {
@@ -155,7 +125,7 @@ bool fetch_authorized_open(int userId) {
 }
 
 void open_box() {
-    Serial.println("->Opening box");
+    Serial.println("-> Opening box");
 }
 
 void setup() {

@@ -38,6 +38,8 @@ void setup() {
     Serial.println();
 
     bleClient.setup();
+
+    Serial.println();
 }
 
 void loop() {
@@ -51,9 +53,8 @@ void loop() {
 
     bleClient.send(msgToSend, sendMsgSize);
 
-    Serial.printf("Sending message to Geocache: %s",
-                  bleMsgClass.to_string(msgToSend, sendMsgSize));
-    Serial.println();
+    Serial.print("BLE, Sending message to Geocache: ");
+    Serial.println(bleMsgClass.to_string(msgToSend, sendMsgSize));
     Serial.println();
 
     // Cleanup allocated message

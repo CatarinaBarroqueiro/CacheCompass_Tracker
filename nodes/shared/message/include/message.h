@@ -46,6 +46,9 @@ enum MESSAGE_TYPE {
 //! Function used to print a packet in hexadecimal
 void print_packet_in_hex(uint8_t* buffer, uint8_t size);
 
+//! Function to get a timestamp to HH:MM:SS format
+String get_time_string(unsigned long timestamp);
+
 //! Class for managing message creation and extraction
 class LoraMessage {
    private:
