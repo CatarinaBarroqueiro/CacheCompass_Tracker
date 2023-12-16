@@ -16,8 +16,8 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
+import android.view.View;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -33,12 +33,10 @@ public class MainRoom extends AppCompatActivity {
 
     private BluetoothAdapter mBluetoothAdapter;
     Intent btEnablingIntent;
-    //private Button buttonON, buttonOFF;
     private ListView scannedListView;
-    private ImageView distanceIndicator;
     private ArrayList<String> deviceDetailsList = new ArrayList<>();
     private ArrayAdapter<String> arrayAdapter;
-    private static final long SCAN_PERIOD = 5000; // 5 seconds
+    private static final long SCAN_PERIOD = 1000; // New scan every second
     private Handler autoScanHandler;
 
     @Override
@@ -56,7 +54,7 @@ public class MainRoom extends AppCompatActivity {
             startActivity(btEnablingIntent);
         }
 
-        arrayAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1, deviceDetailsList);
+        arrayAdapter = new ArrayAdapter<>(this, R.layout.list_item_layout, R.id.deviceDetailsTextView, deviceDetailsList);
         scannedListView.setAdapter(arrayAdapter);
 
         autoScanHandler = new Handler();
@@ -92,18 +90,6 @@ public class MainRoom extends AppCompatActivity {
         }
     }
 
-    private void disableBluetooth() {
-        if (mBluetoothAdapter.isEnabled()) {
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BLUETOOTH_CONNECT}, 1);
-            }
-            mBluetoothAdapter.disable();
-            Toast.makeText(getApplicationContext(), "Bluetooth is Disabled", Toast.LENGTH_LONG).show();
-        } else {
-            Toast.makeText(getApplicationContext(), "Bluetooth is Already Disabled", Toast.LENGTH_LONG).show();
-        }
-    }
-
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -133,7 +119,7 @@ public class MainRoom extends AppCompatActivity {
                             deviceDetailsList.set(i, "Device Name: " + device.getName() + "\nRSSI: " + rssi + "\nDistance: " + formattedDistance + " meters");
                             deviceFound = true;
 
-                            // Update color of signal icon (for first geocache found)
+                            // Update signal icon color (corresponds to first geocache found)
                             if (i == 0) {
                                 updateDistanceIndicatorColor(distance);
                             }
@@ -192,6 +178,12 @@ public class MainRoom extends AppCompatActivity {
             lastColor = (int) animator.getAnimatedValue();
         });
         colorAnimator.start();
+    }
+
+    public void clearScannedList(View view) {
+        deviceDetailsList.clear(); // Limpa a lista de dispositivos
+        arrayAdapter.notifyDataSetChanged(); // Notifica o adaptador sobre a mudança
+        Toast.makeText(this, "Scanned list cleared", Toast.LENGTH_SHORT).show();
     }
 
     @Override
