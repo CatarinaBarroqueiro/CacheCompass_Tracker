@@ -251,7 +251,7 @@ String LoraMessage::to_string(uint8_t* message, size_t messageSize) {
     } else if (messageType == OPENING_RESPONSE) {
         bool authorized = get_authorized(message, messageSize);
         messageString = "Opening response for packet " + String(packetId) +
-                        " with authorization " +
+                        " with status = " +
                         (authorized ? "Authorized" : "Unauthorized");
     } else if (messageType == OPENING_RESPONSE_ACK) {
         uint16_t nodeId = get_node_id(message, messageSize);
@@ -327,7 +327,7 @@ uint8_t* BleMessage::open_response(size_t& size, uint32_t packetId,
 
 MESSAGE_TYPE BleMessage::get_type(uint8_t* message, size_t messageSize) {
     if (messageSize < MESSAGE_TYPE_SIZE) {
-        Serial.println("Error: Unable to get type from message");
+        Serial.println("Error: BLE unable to get type from message");
         return INVALID;
     }
 
@@ -343,7 +343,7 @@ MESSAGE_TYPE BleMessage::get_type(uint8_t* message, size_t messageSize) {
 uint32_t BleMessage::get_packet_id(uint8_t* message, size_t messageSize) {
     int headerBefore = MESSAGE_TYPE_SIZE;
     if (messageSize < headerBefore + MESSAGE_PACKET_ID_SIZE) {
-        Serial.println("Error: Unable to get packet id from message");
+        Serial.println("Error: BLE unable to get packet id from message");
         return 0;
     }
 
@@ -356,7 +356,7 @@ uint32_t BleMessage::get_packet_id(uint8_t* message, size_t messageSize) {
 uint16_t BleMessage::get_user_id(uint8_t* message, size_t messageSize) {
     int headerBefore = MESSAGE_TYPE_SIZE + MESSAGE_PACKET_ID_SIZE;
     if (messageSize < headerBefore + MESSAGE_USER_ID_SIZE) {
-        Serial.println("Error: Unable to get user from message");
+        Serial.println("Error: BLE unable to get user from message");
         return 0;
     }
 
@@ -369,7 +369,7 @@ uint16_t BleMessage::get_user_id(uint8_t* message, size_t messageSize) {
 bool BleMessage::get_authorized(uint8_t* message, size_t messageSize) {
     int headerBefore = MESSAGE_TYPE_SIZE + MESSAGE_PACKET_ID_SIZE;
     if (messageSize < headerBefore + MESSAGE_AUTHORIZED_SIZE) {
-        Serial.println("Error: Unable to get authorized from message");
+        Serial.println("Error: BLE unable to get authorized from message");
         return 0;
     }
 
@@ -391,7 +391,7 @@ String BleMessage::to_string(uint8_t* message, size_t messageSize) {
     } else if (messageType == OPENING_RESPONSE) {
         bool authorized = get_authorized(message, messageSize);
         messageString = "Opening response for packet " + String(packetId) +
-                        " with authorization " +
+                        " with status = " +
                         (authorized ? "Authorized" : "Unauthorized");
     } else {
         messageString = "Received an invalid message";

@@ -60,6 +60,8 @@ void receive_lora(void* parameter) {
 void receive_ble(void* parameter) {
     Serial.print("BLE Task running on core ");
     Serial.println(xPortGetCoreID());
+    Serial.println();
+
     for (;;) {
         uint8_t len = 0;
         uint8_t* data = bleServer.read(&len);
@@ -126,6 +128,7 @@ bool fetch_authorized_open(int userId) {
 
 void open_box() {
     Serial.println("-> Opening box");
+    Serial.println();
 }
 
 void setup() {
