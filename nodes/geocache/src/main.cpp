@@ -18,9 +18,10 @@
 */
 LoRa868 lora(NODE_ID);
 TaskHandle_t loraTask;
-Message msgClass;
-BleServer bleServer(NODE_ID);
+LoraMessage msgClass;
 
+BleServer bleServer(NODE_ID);
+TaskHandle_t bleTask;
 /*
     ##########################################################################
     ############                     Functions                    ############
@@ -28,6 +29,7 @@ BleServer bleServer(NODE_ID);
 */
 String get_time_string(unsigned long timestamp);
 void receive_lora(void* parameter);
+void receive_ble(void* parameter);
 void setup();
 void loop();
 
@@ -68,6 +70,22 @@ void receive_lora(void* parameter) {
         delay(200);
     }
     Serial.println("LoRa868, Receive task ended");
+}
+
+void receive_ble(void* parameter) {
+    Serial.print("BLE Task running on core ");
+    Serial.println(xPortGetCoreID());
+    for (;;) {
+        uint8_t len = 0;
+        uint8_t* data = bleServer.read(&len);
+        if (data != nullptr) {
+            Serial.printf("Receiving %d bytes from client...", len);
+            Serial.println();
+            //reconstruct_image_PSRAM(data, len - 3, BLE);
+        }
+        delay(50);
+    }
+    Serial.println("BLE Task ended");
 }
 
 bool fetch_authorized_open() {
@@ -117,7 +135,11 @@ void setup() {
     Serial.println("GeoCache Terminal ready");
     Serial.println();
 
+    // Setup BLE Server
     bleServer.setup();
+
+    // Create BLE Task to receive data
+    xTaskCreate(receive_ble, "receive_ble", 8000, NULL, 1, &bleTask);
 
     // Setup LoRa868
     while (!lora.configure(VERBOSE))

@@ -16,7 +16,7 @@
 */
 LoRa868 lora(NODE_ID);
 TaskHandle_t loraTask;
-Message msgClass;
+LoraMessage msgClass;
 
 /*
     ##########################################################################

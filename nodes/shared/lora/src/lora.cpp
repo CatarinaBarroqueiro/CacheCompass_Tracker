@@ -87,7 +87,7 @@ bool LoRa868::configure(DEBUG_MODE mode) {
 
 bool LoRa868::connected() {
     // Create and send a Hello message to the Broker
-    Message msgClass;
+    LoraMessage msgClass;
     size_t size;
     uint8_t* msgToSend = msgClass.hello(size, nodeId, TxPacketCount);
     send(msgToSend, size);
