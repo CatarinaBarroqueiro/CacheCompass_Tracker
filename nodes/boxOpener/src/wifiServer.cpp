@@ -34,6 +34,7 @@ void WifiServer::setup() {
     server.begin();
 }
 
+
 void WifiServer::close_connections() {
     // will probably need a list for this
 }

@@ -1,4 +1,5 @@
 #include <Arduino.h>
+//#include <task.h>
 #include <ESP32Servo.h>
 #include <wifiServer.h>
 
@@ -66,7 +67,7 @@ void WifiServer::on_client_connected(void* arg, AsyncClient* client) {
             Serial.println();
 
             open_box();
-            delay(15000);
+            vTaskDelay(pdMS_TO_TICKS(15000));
             close_box();
 
             Serial.println();
