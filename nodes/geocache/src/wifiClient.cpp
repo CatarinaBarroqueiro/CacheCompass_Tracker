@@ -1,4 +1,3 @@
-// Maybe use ifdef to shorten the code, only compiling for client OR server
 #include "wifiClient.h"
 
 WifiClient::WifiClient(const char* network, const char* password) {
@@ -7,9 +6,7 @@ WifiClient::WifiClient(const char* network, const char* password) {
     serverIP = IPAddress(192, 168, 2, 3);
 }
 
-WifiClient::~WifiClient() {
-    disconnect();
-}
+WifiClient::~WifiClient() {}
 
 void WifiClient::connect() {
     WiFi.mode(WIFI_STA);
@@ -21,12 +18,11 @@ void WifiClient::connect() {
     }
 
     Serial.print("Connected to ad-hoc network. My IP address is: ");
-
     Serial.println(WiFi.localIP());
-
     Serial.println();
 
-    // Create a lambda function that captures 'this' and calls 'on_receive' --> because callbacks can't access non-static functions directly
+    // Create a lambda function that captures 'this' and calls 'on_receive'
+    //  --> because callbacks can't access non-static functions directly
     auto onDataCallback = [this](void* arg, AsyncClient* client, void* data,
                                  size_t len) {
         this->on_receive(arg, client, data, len);
@@ -43,8 +39,6 @@ void WifiClient::connect() {
         delay(1000);
     }
 }
-
-void WifiClient::disconnect() {}
 
 void WifiClient::send(uint8_t* data, size_t size) {
     if (client.connected()) {

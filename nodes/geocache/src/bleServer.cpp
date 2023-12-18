@@ -5,10 +5,6 @@ BleServer::BleServer(int nodeId) {
 }
 BleServer::~BleServer() {}
 
-/*! 
-    read data from BLE, the `len` parameter is the length of the data received
-    and is altered by the address of the variable provided
-*/
 uint8_t* BleServer::read(uint8_t* len) {
     uint8_t* value = pCharacteristic->getData();
 
@@ -36,7 +32,7 @@ void BleServer::setup() {
     pCharacteristic = pService->createCharacteristic(
         CHARACTERISTIC_UUID,
         BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE);
-    //pCharacteristic->setMTU(512); // Set your desired MTU size here
+    //pCharacteristic->setMTU(512); // Set your desired MTU size here - only for BT 5.0 and above
     pCharacteristic->setValue("/");
     pService->start();
     BLEAdvertising* pAdvertising = BLEDevice::getAdvertising();

@@ -8,14 +8,11 @@ WifiServer::WifiServer(const char* network, const char* password) {
     _password = password;
 }
 
-WifiServer::~WifiServer() {
-    close_connections();
-}
+WifiServer::~WifiServer() {}
 
 void WifiServer::setup() {
     WiFi.softAPConfig(local_IP, gateway, subnet);
     WiFi.softAP(ssid, _password);
-    //IPAddress IP = WiFi.softAPIP();
     Serial.print("Serving Access Point on IP ");
     Serial.print(WiFi.softAPIP());
     Serial.print(" for ");
@@ -29,12 +26,5 @@ void WifiServer::setup() {
         },
         this);
 
-    // There are other functions that can be bound, like disconnected
-
     server.begin();
-}
-
-
-void WifiServer::close_connections() {
-    // will probably need a list for this
 }

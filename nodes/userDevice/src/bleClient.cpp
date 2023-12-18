@@ -11,7 +11,6 @@ void BleClient::notify_callback(
     Serial.println((char*)pData);
 }
 
-/* Start connection to the BLE Server */
 bool BleClient::connect_server() {
     Serial.println("Starting BLE Client");
     if (myDevice == nullptr)
@@ -24,12 +23,12 @@ bool BleClient::connect_server() {
     Serial.println(" - Created client");
     pClient->setClientCallbacks(new MyClientCallback(this));
     /* Connect to the remote BLE Server */
-    pClient->connect(
-        myDevice);  // if you pass BLEAdvertisedDevice instead of address, it will be recognized type of peer device address (public or private)
+    // if you pass BLEAdvertisedDevice instead of address, it will be recognized type of peer device address (public or private)
+    pClient->connect(myDevice);
     Serial.println(" - Connected to server");
 
-    pClient->setMTU(
-        BLE_MTU);  //set client to request maximum MTU from server (default is 23 otherwise) (this can return a bool on status)
+    //set client to request maximum MTU from server (default is 23 otherwise) (this can return a bool on status)
+    pClient->setMTU(BLE_MTU);
     negotiatedMTU = pClient->getMTU();
     Serial.printf(" - Agreed on MTU of %d bytes", negotiatedMTU);
     Serial.println();
@@ -68,10 +67,6 @@ bool BleClient::connect_server() {
 void BleClient::send(uint8_t* data, size_t size) {
     if (connected) {
         pRemoteCharacteristic->writeValue(data, size + 3);
-
-        //printHEXPacket(message, 33); -- debugging
-        //Serial.printf("Sending %d bytes to server...", size);
-        //Serial.println(" ");
     } else {
         Serial.println("Client not connected to server!");
     }
@@ -100,8 +95,8 @@ void BleClient::setup() {
     }
 
     while (!connect_server()) {
-        BLEDevice::getScan()->start(
-            0);  // this is just example to start scan after disconnect, most likely there is better way to do it in arduino
+        // this is just example to start scan after disconnect, most likely there is better way to do it in arduino
+        BLEDevice::getScan()->start(0);
         Serial.println("Attempting to connect to the BLE Server...");
         delay(1000);
     }

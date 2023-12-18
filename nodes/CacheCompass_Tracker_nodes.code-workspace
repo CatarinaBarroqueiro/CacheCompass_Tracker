@@ -21,7 +21,7 @@
 		}
 	],
 	"settings": {
-		"editor.formatOnSave": false,
+		"editor.formatOnSave": true,
 		"files.associations": {
 			"array": "cpp",
 			"string_view": "cpp",
@@ -40,6 +40,7 @@
 			"vector": "cpp"
 		},
 		"cSpell.words": [
+			"APIP",
 			"BLEUUID",
 			"GPIO",
 			"LDRO",
