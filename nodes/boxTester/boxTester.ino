@@ -4,6 +4,8 @@
 #include <ESP32Servo.h>
 
 #define PIN_SERVO 13
+#define MIN_SERVO_US 1000 // 500 default
+#define MAX_SERVO_US 2000 // 2400 default
 #define PIN_SWITCH 14
 
 Servo servo;
@@ -13,8 +15,8 @@ bool boxClosed = true;
 void open(){
   Serial.print("Opening box... ");
 
-  servo.write(140);  // max speed counter-clockwise
-  delay(200);
+  servo.write(160);  // max speed counter-clockwise
+  delay(220);
   servo.write(90);  // no motion
 
   Serial.println("Done!");
@@ -23,8 +25,8 @@ void open(){
 void close(){
   Serial.print("Closing box... ");
 
-  servo.write(50);  // max speed clockwise
-  delay(180);
+  servo.write(30);  // max speed clockwise
+  delay(200);
   servo.write(90);  // no motion
 
   Serial.println("Done!");
@@ -38,7 +40,7 @@ void setup() {
   Serial.println();
 
   // Setup servo
-  servo.attach(PIN_SERVO);
+  servo.attach(PIN_SERVO, MIN_SERVO_US, MAX_SERVO_US);
 
   // Setup Switch
   pinMode(PIN_SWITCH, INPUT);

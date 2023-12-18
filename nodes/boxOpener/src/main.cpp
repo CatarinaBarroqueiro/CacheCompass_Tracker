@@ -9,6 +9,9 @@
     ##########################################################################
 */
 #define PIN_SERVO 13
+#define MIN_SERVO_US 1000 // 500 default
+#define MAX_SERVO_US 2000 // 2400 default
+#define PIN_SWITCH 14
 
 /*
     ##########################################################################
@@ -21,6 +24,7 @@ Servo servo;
 // ESP32Servo by Kevin Harrington, John K. Bennett
 // https://arduino.stackexchange.com/questions/1321/servo-wont-stop-rotating
 
+bool boxClosed = true;
 /*
     ##########################################################################
     ############                     Functions                    ############
@@ -40,8 +44,8 @@ void loop();
 void open_box() {
     Serial.print("Opening box... ");
 
-    servo.write(0);  // max speed clockwise
-    delay(100);
+    servo.write(160);  // max speed clockwise
+    vTaskDelay(pdMS_TO_TICKS(220));
     servo.write(90);  // no motion
 
     Serial.println("Done!");
@@ -50,8 +54,8 @@ void open_box() {
 void close_box() {
     Serial.print("Closing box... ");
 
-    servo.write(180);  // max speed counter-clockwise
-    delay(100);
+    servo.write(30);  // max speed counter-clockwise
+    vTaskDelay(pdMS_TO_TICKS(200));
     servo.write(90);  // no motion
 
     Serial.println("Done!");
@@ -87,8 +91,26 @@ void setup() {
 
     // Setup wifi receiver
     wifiServer.setup();
+
+    // Setup Switch
+    pinMode(PIN_SWITCH, INPUT);
 }
 
 void loop() {
-    delay(1000);
+    int switchValue = digitalRead(PIN_SWITCH);
+    // switchValue == HIGH -> on
+    // switchValue == LOW -> off
+
+    //Serial.printf("Switch is %d and box is %d", switchValue, boxClosed);
+    //Serial.println();
+
+    if(switchValue == HIGH && boxClosed){
+        open_box;
+        boxClosed = false;
+    }else if(switchValue == LOW && !boxClosed){
+        close_box();
+        boxClosed = true;
+    }
+
+    vTaskDelay(pdMS_TO_TICKS(100));
 }
