@@ -18,7 +18,7 @@
 //! Size of the timestamp field in bytes
 #define MESSAGE_TIMESTAMP_SIZE 8
 //! Size of the user ID field in bytes
-#define MESSAGE_USER_ID_SIZE 4
+#define MESSAGE_USER_ID_SIZE 2
 //! Size of the authorized field in bytes
 #define MESSAGE_AUTHORIZED_SIZE 1
 

@@ -9,8 +9,8 @@
     ##########################################################################
 */
 #define PIN_SERVO 13
-#define MIN_SERVO_US 1000 // 500 default
-#define MAX_SERVO_US 2000 // 2400 default
+#define MIN_SERVO_US 1000  // 500 default
+#define MAX_SERVO_US 2000  // 2400 default
 #define PIN_SWITCH 14
 
 /*
@@ -25,6 +25,8 @@ Servo servo;
 // https://arduino.stackexchange.com/questions/1321/servo-wont-stop-rotating
 
 bool boxClosed = true;
+bool wifiLock = false;
+int counter = 0;
 /*
     ##########################################################################
     ############                     Functions                    ############
@@ -45,7 +47,7 @@ void open_box() {
     Serial.print("Opening box... ");
 
     servo.write(160);  // max speed clockwise
-    vTaskDelay(pdMS_TO_TICKS(220));
+    vTaskDelay(pdMS_TO_TICKS(120));
     servo.write(90);  // no motion
 
     Serial.println("Done!");
@@ -55,7 +57,7 @@ void close_box() {
     Serial.print("Closing box... ");
 
     servo.write(30);  // max speed counter-clockwise
-    vTaskDelay(pdMS_TO_TICKS(200));
+    vTaskDelay(pdMS_TO_TICKS(100));
     servo.write(90);  // no motion
 
     Serial.println("Done!");
@@ -70,9 +72,9 @@ void WifiServer::on_client_connected(void* arg, AsyncClient* client) {
             Serial.printf("Receiving %d bytes from geocache", len);
             Serial.println();
 
+            wifiLock = true;
+            counter = 0;
             open_box();
-            vTaskDelay(pdMS_TO_TICKS(15000));
-            close_box();
 
             Serial.println();
         },
@@ -97,19 +99,34 @@ void setup() {
 }
 
 void loop() {
-    int switchValue = digitalRead(PIN_SWITCH);
-    // switchValue == HIGH -> on
-    // switchValue == LOW -> off
 
-    //Serial.printf("Switch is %d and box is %d", switchValue, boxClosed);
-    //Serial.println();
+    if (!wifiLock) {
+        int switchValue = digitalRead(PIN_SWITCH);
+        // switchValue == HIGH -> on
+        // switchValue == LOW -> off
 
-    if(switchValue == HIGH && boxClosed){
-        open_box;
-        boxClosed = false;
-    }else if(switchValue == LOW && !boxClosed){
-        close_box();
-        boxClosed = true;
+        Serial.printf("Switch is %d and box is %d", switchValue, boxClosed);
+        Serial.println();
+
+        if (switchValue == HIGH && boxClosed) {
+            open_box();
+            boxClosed = false;
+        } else if (switchValue == LOW && !boxClosed) {
+            //close_box();
+            boxClosed = true;
+        }
+    } else {
+
+        if (counter >= 50) {
+            close_box();
+            boxClosed = true;
+            wifiLock = false;
+            counter = 0;
+        } else {
+            Serial.printf("Counter is %d", counter);
+            Serial.println();
+        }
+        counter++;
     }
 
     vTaskDelay(pdMS_TO_TICKS(100));
