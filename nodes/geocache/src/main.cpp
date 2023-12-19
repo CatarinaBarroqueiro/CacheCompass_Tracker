@@ -2,6 +2,7 @@
 #include <bleServer.h>
 #include <lora.h>
 #include <message.h>
+#include <wifiClient.h>
 
 /*
     ##########################################################################
@@ -23,6 +24,8 @@ LoraMessage loraMsgClass;
 BleServer bleServer(NODE_ID);
 TaskHandle_t bleTask;
 BleMessage bleMsgClass;
+
+WifiClient wifiClient(SSID_AD_HOC, PASSWORD_AD_HOC);
 /*
     ##########################################################################
     ############                     Functions                    ############
@@ -41,6 +44,14 @@ void loop();
     ############                      Code                        ############
     ##########################################################################
 */
+
+void WifiClient::on_receive(void* arg, AsyncClient* client, void* data,
+                            size_t len) {
+    char* receivedData = (char*)data;
+    Serial.print("Received from Box Opener: ");
+    Serial.println(receivedData);
+    Serial.println(" ");
+}
 
 void receive_lora(void* parameter) {
     Serial.print("LoRa868, Receive task running on core ");
@@ -127,8 +138,9 @@ bool fetch_authorized_open(int userId) {
 }
 
 void open_box() {
-    Serial.println("-> Opening box");
+    Serial.println("-> Sending Message to open box to Box Opener");
     Serial.println();
+    wifiClient.ping();
 }
 
 void setup() {
@@ -141,6 +153,9 @@ void setup() {
 
     // Setup BLE Server
     bleServer.setup();
+
+    // Setup wifi with box opener
+    wifiClient.connect();
 
     // Setup LoRa868
     while (!lora.configure(VERBOSE))
