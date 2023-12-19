@@ -6,6 +6,10 @@ import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattCallback;
+import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattService;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -16,6 +20,7 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
@@ -26,8 +31,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import java.nio.ByteBuffer;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.UUID;
 
 public class MainRoom extends AppCompatActivity {
 
@@ -38,6 +45,14 @@ public class MainRoom extends AppCompatActivity {
     private ArrayAdapter<String> arrayAdapter;
     private static final long SCAN_PERIOD = 1000; // New scan every second
     private Handler autoScanHandler;
+    private boolean isConnected = false;
+    private BluetoothGatt gatt;
+    private boolean shouldContinueScanning = true;
+    private Context appContext;
+    private String test;
+
+    private static final UUID SERVICE_UUID = UUID.fromString("4fafc201-1fb5-459e-8fcc-c5c9c331914b");
+    private static final UUID CHARACTERISTIC_UUID = UUID.fromString("beb5483e-36e1-4688-b7f5-ea07361b26a8");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -124,7 +139,7 @@ public class MainRoom extends AppCompatActivity {
                                 updateDistanceIndicatorColor(distance);
                             }
 
-                            break;
+                            break; // NEED TO CHANGE?
                         }
                     }
 
@@ -132,12 +147,139 @@ public class MainRoom extends AppCompatActivity {
                     if (!deviceFound) {
                         deviceDetailsList.add("Device Name: " + device.getName() + "\nRSSI: " + rssi + "\nDistance: " + formattedDistance + " meters");
                     }
+
+                    // Connect to the server only if the distance is less than 1 and not already connected
+                    if (distance < 1.0 && !isConnected) {
+                        connectToServer(device);
+                        stopScans(); // Stop further scans once connected
+                    }
                 }
 
                 arrayAdapter.notifyDataSetChanged();
             }
         }
     };
+
+    private void stopScans() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
+
+            return;
+        }
+        if (mBluetoothAdapter != null && mBluetoothAdapter.isDiscovering()) {
+            mBluetoothAdapter.cancelDiscovery();
+            //showToast("Scans stopped");
+        }
+    }
+
+    private void connectToServer(BluetoothDevice device) {
+        if (device == null) {
+            Toast.makeText(getApplicationContext(), "DEVICE NULL!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        //Toast.makeText(getApplicationContext(), "GETTING HERE!", Toast.LENGTH_SHORT).show();
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        //Toast.makeText(getApplicationContext(), "GETTING HERE2!", Toast.LENGTH_SHORT).show();
+
+        gatt = device.connectGatt(this, false, gattCallback);
+    }
+
+    // Callback for BluetoothGatt events
+    private final BluetoothGattCallback gattCallback = new BluetoothGattCallback() {
+        @Override
+        public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                if (newState == BluetoothGatt.STATE_CONNECTED) {
+                    //showToastOnUIThread("Connected to server!!!");
+                    onConnected();
+                    //showToastOnUIThread("AFTER ON CONNECTED!!!");
+                    if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED) {
+                        return;
+                    }
+                    //showToastOnUIThread("AFTER PERMISSION!!!");
+                    gatt.discoverServices();
+                }
+            } else {
+                showToastOnUIThread("Connection failed with status: " + status);
+            }
+        }
+
+        @Override
+        public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                BluetoothGattService service = gatt.getService(SERVICE_UUID);
+                if (service != null) {
+                    //showToastOnUIThread("SERVICE FOUND!!!");
+                    // Continue to discover characteristics within this service
+                    BluetoothGattCharacteristic characteristic = service.getCharacteristic(CHARACTERISTIC_UUID);
+                    if (characteristic != null) {
+                        test = characteristic.getUuid().toString();
+                        //showToastOnUIThread("CHARACTERISTIC FOUND!!!");
+                        showToastOnUIThread(test);
+
+                        //byte[] messageData = createYourMessageData();
+                        // TODO
+                        //sendBleMessage(characteristic, messageData);
+                    }
+                }
+            }
+        }
+
+        // Helper method to show Toast on the UI thread
+        private void showToastOnUIThread(String message) {
+            runOnUiThread(() -> Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show());
+        }
+
+        private void sendBleMessage(BluetoothGattCharacteristic characteristic, byte[] data) {
+            if (characteristic != null && data != null) {
+                characteristic.setValue(data);
+                if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED) {
+                    return;
+                }
+                boolean success = gatt.writeCharacteristic(characteristic);
+                if (success) {
+                    showToastOnUIThread("Message sent successfully");
+                } else {
+                    showToastOnUIThread("Failed to send message");
+                }
+            } else {
+                showToastOnUIThread("Characteristic or data is null");
+            }
+        }
+
+    };
+
+    /*private byte[] createYourMessageData() {
+        int packetId = generatePacketId(); // Implement your own logic to generate packet ID
+        int userId = getUserId(); // Implement your own logic to get the user ID
+
+        ByteBuffer buffer = ByteBuffer.allocate(MESSAGE_TYPE_SIZE + MESSAGE_PACKET_ID_SIZE + MESSAGE_USER_ID_SIZE);
+        buffer.put((byte) OPENING_REQUEST.ordinal()); // Assuming OPENING_REQUEST is an enum
+        buffer.putInt(packetId);
+        buffer.putShort((short) userId);
+
+        return buffer.array();
+    }
+
+    // Example implementations for generatePacketId and getUserId (replace with your logic)
+    private int generatePacketId() {
+        return 123; // Replace with your actual logic
+    }
+
+    private int getUserId() {
+        return 456; // Replace with your actual logic
+    }*/
+
+
+    private void onConnected() {
+        isConnected = true;
+        shouldContinueScanning = false;
+    }
+
 
     private boolean isGeoCacheDevice(String deviceName) {
         // Define a regular expression pattern for GeoCache devices
@@ -201,7 +343,7 @@ public class MainRoom extends AppCompatActivity {
     private final Runnable autoScanRunnable = new Runnable() {
         @Override
         public void run() {
-            if (mBluetoothAdapter != null && mBluetoothAdapter.isEnabled()) {
+            if (mBluetoothAdapter != null && mBluetoothAdapter.isEnabled() && shouldContinueScanning) {
                 startScan();
             }
             autoScanHandler.postDelayed(this, SCAN_PERIOD);
@@ -231,15 +373,20 @@ public class MainRoom extends AppCompatActivity {
             return;
         }
 
-        // Start Discovery
-        try {
-            if (mBluetoothAdapter.isDiscovering()) {
-                mBluetoothAdapter.cancelDiscovery();
+        if(!isConnected) {
+            // Start Discovery
+            try {
+                if (mBluetoothAdapter.isDiscovering()) {
+                    mBluetoothAdapter.cancelDiscovery();
+                }
+
+                if (shouldContinueScanning) {
+                    mBluetoothAdapter.startDiscovery();
+                    Toast.makeText(getApplicationContext(), "SCANNING", Toast.LENGTH_LONG).show();
+                }
+            } catch (Exception e) {
+                Toast.makeText(getApplicationContext(), "Exception, Scan Again", Toast.LENGTH_LONG).show();
             }
-            Toast.makeText(getApplicationContext(), "SCANNING", Toast.LENGTH_LONG).show();
-            mBluetoothAdapter.startDiscovery();
-        } catch (Exception e) {
-            Toast.makeText(getApplicationContext(), "Exception, Scan Again", Toast.LENGTH_LONG).show();
         }
     }
 
