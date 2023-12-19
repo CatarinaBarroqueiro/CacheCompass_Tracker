@@ -27,13 +27,16 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.UUID;
 
 public class MainRoom extends AppCompatActivity {
@@ -53,6 +56,16 @@ public class MainRoom extends AppCompatActivity {
 
     private static final UUID SERVICE_UUID = UUID.fromString("4fafc201-1fb5-459e-8fcc-c5c9c331914b");
     private static final UUID CHARACTERISTIC_UUID = UUID.fromString("beb5483e-36e1-4688-b7f5-ea07361b26a8");
+
+    private static final int MESSAGE_HEADER_SIZE = 3;
+    private static final int MESSAGE_TYPE_SIZE = 2;
+    private static final int MESSAGE_PACKET_ID_SIZE = 4;
+    private static final int MESSAGE_USER_ID_SIZE = 2;
+
+    private int packetId = 4;
+    private static final short USER_ID = 1; //  uint16_t
+    private boolean alreadyPopup = false;
+    private boolean flagPopup = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -148,15 +161,36 @@ public class MainRoom extends AppCompatActivity {
                         deviceDetailsList.add("Device Name: " + device.getName() + "\nRSSI: " + rssi + "\nDistance: " + formattedDistance + " meters");
                     }
 
-                    // Connect to the server only if the distance is less than 1 and not already connected
-                    if (distance < 1.0 && !isConnected) {
-                        connectToServer(device);
-                        stopScans(); // Stop further scans once connected
+                    if (distance < 1.0 && !alreadyPopup) {
+                        alreadyPopup=true;
+                        showCacheFoundDialog(distance, device);
+
                     }
+
+
                 }
 
                 arrayAdapter.notifyDataSetChanged();
             }
+        }
+        private void showCacheFoundDialog(double distance, BluetoothDevice device) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(MainRoom.this);
+            builder.setTitle("Cache Found");
+            builder.setMessage("Did you find the cache?")
+                    .setPositiveButton("Yes", (dialog, id) -> {
+                        Toast.makeText(MainRoom.this, "Cache found!", Toast.LENGTH_SHORT).show();
+                        connectToServer(device);
+                        // You may want to stop scanning here as well
+                        stopScans();
+                    })
+                    .setNegativeButton("No", (dialog, id) -> {
+                        Toast.makeText(MainRoom.this, "keep Looking!", Toast.LENGTH_SHORT).show();
+                        flagPopup = false;
+                        alreadyPopup=false;
+                    });
+
+            AlertDialog dialog = builder.create();
+            dialog.show();
         }
     };
 
@@ -210,7 +244,10 @@ public class MainRoom extends AppCompatActivity {
 
         @Override
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+            //showToastOnUIThread("SERVICE Discovered!!!");
             if (status == BluetoothGatt.GATT_SUCCESS) {
+                //showToastOnUIThread("SERVICE Gatt success!!!");
+
                 BluetoothGattService service = gatt.getService(SERVICE_UUID);
                 if (service != null) {
                     //showToastOnUIThread("SERVICE FOUND!!!");
@@ -220,29 +257,28 @@ public class MainRoom extends AppCompatActivity {
                         test = characteristic.getUuid().toString();
                         //showToastOnUIThread("CHARACTERISTIC FOUND!!!");
                         showToastOnUIThread(test);
+                        byte[] messageData = createMessageData(packetId++);
+                        showToastOnUIThread("Message to be sent: " + Arrays.toString(messageData));
+                        sendBleMessage(characteristic, messageData);
 
-                        //byte[] messageData = createYourMessageData();
-                        // TODO
-                        //sendBleMessage(characteristic, messageData);
+                        //showToastOnUIThread("COMUNICOU?");
                     }
+                }else{
+                    showToastOnUIThread("Service not discovered!");
                 }
             }
         }
 
-        // Helper method to show Toast on the UI thread
-        private void showToastOnUIThread(String message) {
-            runOnUiThread(() -> Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show());
-        }
-
         private void sendBleMessage(BluetoothGattCharacteristic characteristic, byte[] data) {
+            Log.d("BLE", "Sending data: " + Arrays.toString(data));
             if (characteristic != null && data != null) {
-                characteristic.setValue(data);
                 if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED) {
                     return;
                 }
+                characteristic.setValue(data);
                 boolean success = gatt.writeCharacteristic(characteristic);
                 if (success) {
-                    showToastOnUIThread("Message sent successfully");
+                    //showToastOnUIThread("Message sent successfully");
                 } else {
                     showToastOnUIThread("Failed to send message");
                 }
@@ -253,26 +289,15 @@ public class MainRoom extends AppCompatActivity {
 
     };
 
-    /*private byte[] createYourMessageData() {
-        int packetId = generatePacketId(); // Implement your own logic to generate packet ID
-        int userId = getUserId(); // Implement your own logic to get the user ID
-
-        ByteBuffer buffer = ByteBuffer.allocate(MESSAGE_TYPE_SIZE + MESSAGE_PACKET_ID_SIZE + MESSAGE_USER_ID_SIZE);
-        buffer.put((byte) OPENING_REQUEST.ordinal()); // Assuming OPENING_REQUEST is an enum
+    private byte[] createMessageData(int packetId) {
+        final short messageType = 0x02;
+        ByteBuffer buffer = ByteBuffer.allocate(MESSAGE_HEADER_SIZE + MESSAGE_TYPE_SIZE+ MESSAGE_PACKET_ID_SIZE + MESSAGE_USER_ID_SIZE);
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
+        buffer.putShort(messageType); // Cast to short as Java doesn't have unsigned types
         buffer.putInt(packetId);
-        buffer.putShort((short) userId);
-
+        buffer.putShort(USER_ID);
         return buffer.array();
     }
-
-    // Example implementations for generatePacketId and getUserId (replace with your logic)
-    private int generatePacketId() {
-        return 123; // Replace with your actual logic
-    }
-
-    private int getUserId() {
-        return 456; // Replace with your actual logic
-    }*/
 
 
     private void onConnected() {
@@ -292,7 +317,7 @@ public class MainRoom extends AppCompatActivity {
     private double calculateDistance(int rssi) {
         double RSSI_0 = -59.0; // Adjust this value based on your specific environment
         double N = 2.0;
-        return Math.pow(10, ((RSSI_0 - rssi) / (10.0 * N)));
+        return (Math.pow(10, ((RSSI_0 - rssi) / (10.0 * N))))-0.5;
     }
 
     private int lastColor = Color.TRANSPARENT; // Initialize with a transparent color or any initial color
@@ -326,6 +351,9 @@ public class MainRoom extends AppCompatActivity {
         deviceDetailsList.clear(); // Limpa a lista de dispositivos
         arrayAdapter.notifyDataSetChanged(); // Notifica o adaptador sobre a mudança
         Toast.makeText(this, "Scanned list cleared", Toast.LENGTH_SHORT).show();
+
+        // Start a new scan
+        startScan();
     }
 
     @Override
@@ -390,6 +418,8 @@ public class MainRoom extends AppCompatActivity {
         }
     }
 
+
+
     private boolean checkEnableGPS() {
         LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         return locationManager != null && (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER));
@@ -399,5 +429,9 @@ public class MainRoom extends AppCompatActivity {
     protected void onDestroy() {
         unregisterReceiver(mReceiver);
         super.onDestroy();
+    }
+
+    private void showToastOnUIThread(String message) {
+        runOnUiThread(() -> Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show());
     }
 }
