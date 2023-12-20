@@ -39,6 +39,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.UUID;
 
+import kotlinx.coroutines.Delay;
+
 public class MainRoom extends AppCompatActivity {
 
     private BluetoothAdapter mBluetoothAdapter;
@@ -63,7 +65,8 @@ public class MainRoom extends AppCompatActivity {
     private static final int MESSAGE_USER_ID_SIZE = 2;
 
     private int packetId = 4;
-    private static final short USER_ID = 1; //  uint16_t
+    private short userId;
+    //private static final short USER_ID = 1; //  uint16_t
     private boolean alreadyPopup = false;
     private boolean flagPopup = false;
 
@@ -76,6 +79,10 @@ public class MainRoom extends AppCompatActivity {
         setupBluetooth();
 
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
+        userId = getIntent().getShortExtra("userId",(short)0);
+        //Toast.makeText(this, "ID ROOM + " + userId, Toast.LENGTH_SHORT).show();
+
 
         if (!mBluetoothAdapter.isEnabled()) {
             btEnablingIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
@@ -119,6 +126,8 @@ public class MainRoom extends AppCompatActivity {
     }
 
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        private int consecutiveLowDistanceCount = 0;
+
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
@@ -162,12 +171,15 @@ public class MainRoom extends AppCompatActivity {
                     }
 
                     if (distance < 1.0 && !alreadyPopup) {
-                        alreadyPopup=true;
-                        showCacheFoundDialog(distance, device);
+                        consecutiveLowDistanceCount++;
 
+                        if (consecutiveLowDistanceCount >= 3) {
+                            alreadyPopup = true;
+                            showCacheFoundDialog(distance, device);
+                        }
+                    } else {
+                        consecutiveLowDistanceCount = 0;
                     }
-
-
                 }
 
                 arrayAdapter.notifyDataSetChanged();
@@ -295,7 +307,7 @@ public class MainRoom extends AppCompatActivity {
         buffer.order(ByteOrder.LITTLE_ENDIAN);
         buffer.putShort(messageType); // Cast to short as Java doesn't have unsigned types
         buffer.putInt(packetId);
-        buffer.putShort(USER_ID);
+        buffer.putShort(userId);
         return buffer.array();
     }
 
@@ -317,7 +329,7 @@ public class MainRoom extends AppCompatActivity {
     private double calculateDistance(int rssi) {
         double RSSI_0 = -59.0; // Adjust this value based on your specific environment
         double N = 2.0;
-        return (Math.pow(10, ((RSSI_0 - rssi) / (10.0 * N))))-0.5;
+        return (Math.pow(10, ((RSSI_0 - rssi) / (10.0 * N))));
     }
 
     private int lastColor = Color.TRANSPARENT; // Initialize with a transparent color or any initial color
@@ -410,7 +422,7 @@ public class MainRoom extends AppCompatActivity {
 
                 if (shouldContinueScanning) {
                     mBluetoothAdapter.startDiscovery();
-                    Toast.makeText(getApplicationContext(), "SCANNING", Toast.LENGTH_LONG).show();
+                    //Toast.makeText(getApplicationContext(), "SCANNING", Toast.LENGTH_LONG).show();
                 }
             } catch (Exception e) {
                 Toast.makeText(getApplicationContext(), "Exception, Scan Again", Toast.LENGTH_LONG).show();
