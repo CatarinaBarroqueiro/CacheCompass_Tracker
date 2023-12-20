@@ -1,12 +1,13 @@
 #include <webAPI.h>
 
-webAPI::webAPI(/* args */) {}
+WebAPI::WebAPI() {}
 
-webAPI::~webAPI() {}
+WebAPI::~WebAPI() {}
 
-void webAPI::connect_wifi() {
+void WebAPI::connect_wifi() {
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-    Serial.println("Connecting to " + WIFI_SSID);
+    Serial.printf("Connecting to %s", WIFI_SSID);
+    Serial.println();
     while (WiFi.status() != WL_CONNECTED) {
         delay(500);
         Serial.print(".");
@@ -16,9 +17,7 @@ void webAPI::connect_wifi() {
     Serial.println(WiFi.localIP());
 }
 
-bool webAPI::request_user_authorized(uint16_t userId) {
-    Serial.println("Requesting user authorization...");
-
+bool WebAPI::request_user_authorized(uint16_t userId) {
     String infoString = HOST_NAME + USER_ID_PATH_NAME + "?" +
                         USER_ID_QUERY_VARS + String(userId);
 
@@ -54,18 +53,20 @@ bool webAPI::request_user_authorized(uint16_t userId) {
                 */
 
                 authorized = response[0]["flag"];
-                Serial.printf("User is %s to access geocache",
+                Serial.printf(" - User is %s to access geocache",
                               authorized ? "Authorized" : "Unauthorized");
                 Serial.println();
             }
 
         } else {
             // HTTP header has been send and Server response header has been handled
-            Serial.printf(" - [HTTP] GET... code: %d\n", httpCode);
+            Serial.printf(" - [HTTP] GET... code: %d", httpCode);
+            Serial.println();
         }
     } else {
-        Serial.printf(" - Error: HTTP, GET... failed: %s\n",
+        Serial.printf(" - Error: HTTP, GET... failed: %s",
                       http.errorToString(httpCode).c_str());
+        Serial.println();
     }
 
     http.end();
@@ -73,5 +74,46 @@ bool webAPI::request_user_authorized(uint16_t userId) {
     return authorized;
 }
 
-bool webAPI::post_discovery(uint16_t nodeId, uint16_t userId,
-                            unsigned long timestamp) {}
+bool WebAPI::post_discovery(uint16_t nodeId, uint16_t userId,
+                            unsigned long timestamp, bool authorized) {
+
+    String infoString = HOST_NAME + DISCOVERY_PATH_NAME;
+
+    Serial.println(" - Posting Discovery to URL:" + infoString);
+
+    http.begin(infoString);
+    http.addHeader("Content-Type", "application/json");
+
+    JSONVar discData;
+    discData["box"] = nodeId;
+    discData["user"] = userId;
+    discData["discTime"] = get_time_string(timestamp);
+    discData["authorized"] = authorized;
+
+    String jsonString = JSON.stringify(discData);
+    Serial.println(" - Post data: " + jsonString);
+    int httpCode = http.POST(jsonString);
+
+    bool status = false;
+
+    // httpCode will be negative on error
+    if (httpCode > 0) {
+        // file found at server
+        if (httpCode == HTTP_CODE_OK || httpCode == 201) {
+            Serial.println(" - Post executed successfully ");
+            status = true;
+        } else {
+            // HTTP header has been send and Server response header has been handled
+            Serial.printf(" - [HTTP] GET... code: %d", httpCode);
+            Serial.println();
+        }
+    } else {
+        Serial.printf(" - Error: HTTP, GET... failed: %s",
+                      http.errorToString(httpCode).c_str());
+        Serial.println();
+    }
+
+    http.end();
+
+    return status;
+}

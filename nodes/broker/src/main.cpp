@@ -19,7 +19,7 @@ LoRa868 lora(NODE_ID);
 TaskHandle_t loraTask;
 LoraMessage msgClass;
 
-webAPI webAPI;
+WebAPI webAPI;
 /*
     ##########################################################################
     ############                     Functions                    ############
@@ -57,9 +57,11 @@ void process_lora_message(uint8_t* message, uint8_t size) {
         unsigned long timestamp = msgClass.get_timestamp(message, size);
 
         // call remote service
+        Serial.println("Http, Starting requests for user authorization");
         bool authorized = webAPI.request_user_authorized(userId);
-
-        webAPI.post_discovery(nodeId, userId, timestamp);
+        webAPI.post_discovery(nodeId, userId, timestamp, authorized);
+        Serial.println("Http, all requests completed");
+        Serial.println();
 
         msgToSend =
             msgClass.open_response(sendMsgSize, nodeId, packetId, authorized);
