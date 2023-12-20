@@ -1,13 +1,14 @@
 #include <Arduino.h>
 #include <lora.h>
 #include <message.h>
+#include <webAPI.h>
 
 /*
     ##########################################################################
     ############                  Definitions                     ############
     ##########################################################################
 */
-#define NODE_ID 1
+#define NODE_ID 4
 
 /*
     ##########################################################################
@@ -18,6 +19,7 @@ LoRa868 lora(NODE_ID);
 TaskHandle_t loraTask;
 LoraMessage msgClass;
 
+webAPI webAPI;
 /*
     ##########################################################################
     ############                     Functions                    ############
@@ -54,8 +56,10 @@ void process_lora_message(uint8_t* message, uint8_t size) {
         uint16_t userId = msgClass.get_user_id(message, size);
         unsigned long timestamp = msgClass.get_timestamp(message, size);
 
-        // change this to call remove service
-        bool authorized = true;
+        // call remote service
+        bool authorized = webAPI.request_user_authorized(userId);
+
+        webAPI.post_discovery(nodeId, userId, timestamp);
 
         msgToSend =
             msgClass.open_response(sendMsgSize, nodeId, packetId, authorized);
@@ -106,6 +110,9 @@ void setup() {
         ;
     Serial.println("Broker Terminal ready");
     Serial.println();
+
+    // Setup webAPI
+    webAPI.connect_wifi();
 
     // Setup LoRa868
     while (!lora.configure(VERBOSE))
