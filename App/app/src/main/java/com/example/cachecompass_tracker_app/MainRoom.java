@@ -80,7 +80,7 @@ public class MainRoom extends AppCompatActivity {
 
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
-        userId = getIntent().getShortExtra("userId",(short)0);
+        userId = getIntent().getShortExtra("userId", (short) 0);
         //Toast.makeText(this, "ID ROOM + " + userId, Toast.LENGTH_SHORT).show();
 
 
@@ -173,8 +173,9 @@ public class MainRoom extends AppCompatActivity {
                     if (distance < 1.0 && !alreadyPopup) {
                         consecutiveLowDistanceCount++;
 
-                        if (consecutiveLowDistanceCount >= 3) {
+                        if (consecutiveLowDistanceCount >= 2) {
                             alreadyPopup = true;
+                            stopScans();
                             showCacheFoundDialog(distance, device);
                         }
                     } else {
@@ -185,6 +186,7 @@ public class MainRoom extends AppCompatActivity {
                 arrayAdapter.notifyDataSetChanged();
             }
         }
+
         private void showCacheFoundDialog(double distance, BluetoothDevice device) {
             AlertDialog.Builder builder = new AlertDialog.Builder(MainRoom.this);
             builder.setTitle("Cache Found");
@@ -192,13 +194,13 @@ public class MainRoom extends AppCompatActivity {
                     .setPositiveButton("Yes", (dialog, id) -> {
                         Toast.makeText(MainRoom.this, "Cache found!", Toast.LENGTH_SHORT).show();
                         connectToServer(device);
-                        // You may want to stop scanning here as well
-                        stopScans();
+
+                        alreadyPopup = false; // Reset the flag for the next scan
                     })
                     .setNegativeButton("No", (dialog, id) -> {
                         Toast.makeText(MainRoom.this, "keep Looking!", Toast.LENGTH_SHORT).show();
                         flagPopup = false;
-                        alreadyPopup=false;
+                        alreadyPopup = false;
                     });
 
             AlertDialog dialog = builder.create();
@@ -214,6 +216,19 @@ public class MainRoom extends AppCompatActivity {
         if (mBluetoothAdapter != null && mBluetoothAdapter.isDiscovering()) {
             mBluetoothAdapter.cancelDiscovery();
             //showToast("Scans stopped");
+        }
+    }
+
+    private void disconnectFromServer() {
+        Toast.makeText(getApplicationContext(), "Desconectou", Toast.LENGTH_SHORT).show();
+        if (gatt != null) {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED) {
+                return;
+            }
+            gatt.disconnect();
+            gatt.close(); // Optionally, close the GATT client completely
+            gatt = null;
+            isConnected = false;
         }
     }
 
@@ -269,13 +284,13 @@ public class MainRoom extends AppCompatActivity {
                         test = characteristic.getUuid().toString();
                         //showToastOnUIThread("CHARACTERISTIC FOUND!!!");
                         showToastOnUIThread(test);
-                        byte[] messageData = createMessageData(packetId++);
+                        byte[] messageData = createMessageData(packetId);
                         showToastOnUIThread("Message to be sent: " + Arrays.toString(messageData));
                         sendBleMessage(characteristic, messageData);
 
                         //showToastOnUIThread("COMUNICOU?");
                     }
-                }else{
+                } else {
                     showToastOnUIThread("Service not discovered!");
                 }
             }
@@ -303,7 +318,7 @@ public class MainRoom extends AppCompatActivity {
 
     private byte[] createMessageData(int packetId) {
         final short messageType = 0x02;
-        ByteBuffer buffer = ByteBuffer.allocate(MESSAGE_HEADER_SIZE + MESSAGE_TYPE_SIZE+ MESSAGE_PACKET_ID_SIZE + MESSAGE_USER_ID_SIZE);
+        ByteBuffer buffer = ByteBuffer.allocate(MESSAGE_HEADER_SIZE + MESSAGE_TYPE_SIZE + MESSAGE_PACKET_ID_SIZE + MESSAGE_USER_ID_SIZE);
         buffer.order(ByteOrder.LITTLE_ENDIAN);
         buffer.putShort(messageType); // Cast to short as Java doesn't have unsigned types
         buffer.putInt(packetId);
@@ -333,6 +348,7 @@ public class MainRoom extends AppCompatActivity {
     }
 
     private int lastColor = Color.TRANSPARENT; // Initialize with a transparent color or any initial color
+
     private void updateDistanceIndicatorColor(double distance) {
         ImageView distanceIndicator = findViewById(R.id.distanceIndicator);
 
@@ -360,13 +376,36 @@ public class MainRoom extends AppCompatActivity {
     }
 
     public void clearScannedList(View view) {
-        deviceDetailsList.clear(); // Limpa a lista de dispositivos
-        arrayAdapter.notifyDataSetChanged(); // Notifica o adaptador sobre a mudança
+        deviceDetailsList.clear();
+        arrayAdapter.notifyDataSetChanged();
         Toast.makeText(this, "Scanned list cleared", Toast.LENGTH_SHORT).show();
 
-        // Start a new scan
-        startScan();
+
+
+        if (isConnected) {
+            disconnectFromServer(); // Disconnect from the server
+            packetId++; // Increment the packetId for the new scan
+
+            // Reset states to allow new scan
+            isConnected = false;
+            shouldContinueScanning = true;
+            alreadyPopup = false;
+            flagPopup = false;
+
+            // Start a new scan
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
+                return;
+            }
+            if (mBluetoothAdapter != null && !mBluetoothAdapter.isDiscovering()) {
+                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
+                    return;
+                }
+                mBluetoothAdapter.startDiscovery();
+                //Toast.makeText(getApplicationContext(), "SCANNING", Toast.LENGTH_LONG).show();
+            }
+        }
     }
+
 
     @Override
     protected void onResume() {
@@ -391,6 +430,8 @@ public class MainRoom extends AppCompatActivity {
     };
 
     private void startScan() {
+        //Toast.makeText(getApplicationContext(), "conect?"+isConnected, Toast.LENGTH_LONG).show();
+
         // Check for location and Bluetooth permissions
         if (ContextCompat.checkSelfPermission(getBaseContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
                 ContextCompat.checkSelfPermission(getBaseContext(), Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED ||

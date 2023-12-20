@@ -3,7 +3,10 @@ package com.example.cachecompass_tracker_app;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.InputType;
+import android.view.MotionEvent;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -27,6 +30,7 @@ public class MainActivity extends AppCompatActivity {
     private MaterialButton btnSignUp;
     private String userPassword;
     private short userId;
+    private EditText passwordEditText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         btnSignUp = findViewById(R.id.signupbtn);
+        passwordEditText = findViewById(R.id.password);
 
         TextView username = findViewById(R.id.mail);
         TextView password = findViewById(R.id.password);
@@ -50,7 +55,28 @@ public class MainActivity extends AppCompatActivity {
                 getUserData(userEmail);
             }
         });
+        // Eye password
+        passwordEditText.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_UP) {
+                    // Increase the target area for the eye icon
+                    int targetArea = 150; // You can adjust this value
 
+                    if (event.getRawX() >= (passwordEditText.getRight() - targetArea)) {
+                        // Toggle between visible and invisible password
+                        if (passwordEditText.getInputType() == InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD) {
+                            passwordEditText.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                        } else {
+                            passwordEditText.setInputType(InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+                        }
+                        passwordEditText.setSelection(passwordEditText.getText().length());
+                        return true;
+                    }
+                }
+                return false;
+            }
+        });
         btnSignUp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

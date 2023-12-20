@@ -65,6 +65,8 @@
 
         android:drawableLeft="@drawable/baseline_key_24"
         android:drawablePadding="15dp"
+
+        android:drawableRight="@drawable/baseline_remove_red_eye_24"
         android:hint="Password"
         android:inputType="textPassword"
         android:padding="20dp"

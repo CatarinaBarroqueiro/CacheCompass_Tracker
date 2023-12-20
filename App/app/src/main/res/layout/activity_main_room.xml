@@ -53,6 +53,7 @@
         android:fontFamily="@font/nunitobold"
         android:text="Geocache Tracker"
         android:textSize="25sp"
+        android:textColor="@color/black"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -83,8 +84,10 @@
 
     <ListView
         android:id="@+id/scannedListView"
+        android:paddingLeft="10dp"
         android:layout_width="wrap_content"
         android:layout_height="195dp"
+
         android:layout_marginBottom="350dp"
         android:background="@color/white"
         app:layout_constraintBottom_toBottomOf="parent"
