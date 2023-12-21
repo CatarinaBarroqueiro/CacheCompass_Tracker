@@ -54,7 +54,7 @@ post() {
   };
 
   // Make HTTP request
-  this.http.post<{ message: string }>('http://localhost:3000/user', userData).subscribe(
+  this.http.post<{ message: string }>('http://51.20.64.70:3000/user', userData).subscribe(
     (res) => {
       console.log('Successfully posted data:', res.message);
     },

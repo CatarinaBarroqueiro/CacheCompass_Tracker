@@ -35,7 +35,7 @@ export class LogInComponent {
     const userEmail = this.emailInput.nativeElement.value;
     const userPassword = this.passInput.nativeElement.value;
 
-    this.http.get<any>('http://localhost:3000/user').subscribe((response) => {
+    this.http.get<any>('http://51.20.64.70:3000/user').subscribe((response) => {
       for (let j = 0; j < response.data.length; j++) {
         const user = response.data[j];
         if (userEmail === user.email && userPassword === user.password) {

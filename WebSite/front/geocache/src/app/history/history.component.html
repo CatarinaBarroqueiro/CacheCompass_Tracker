@@ -26,13 +26,14 @@
       <!-- Location Column -->
       <ng-container matColumnDef="location">
         <th mat-header-cell *matHeaderCellDef> Location </th>
-        <td mat-cell *matCellDef="let element"> {{element.box}} </td>
+        <td mat-cell *matCellDef="let element"> {{element.local}} </td>
       </ng-container>
   
       <!-- Header and Row Definitions -->
       <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
       <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
     </table>
+
   </div>
 </div>
 
