@@ -17,40 +17,15 @@ The BLE module integrated into the Cache Compass Tracker acts as a beacon embedd
 
 As the BLE module communicates with the user's phone, it provides real-time information about the cache's proximity. This real-time feedback allows geocaching enthusiasts to receive immediate updates as they get closer to the hidden cache.
 
-#### Directional Guidance
-
-Beyond proximity information, the Cache Compass Tracker leverages BLE to determine the user's orientation relative to the cache. The system interprets this data to guide users with directional indicators such as North, South, East, or West. This feature enhances the user experience, providing clear guidance to the geocache location.
-
 #### Energy Efficiency
 
 One of the key advantages of BLE is its energy-efficient design. The low power consumption of BLE allows for extended battery life, making it an ideal choice for applications where minimizing energy usage is crucial, such as in mobile devices like smartphones.
 
 In summary, the Cache Compass Tracker's BLE integration establishes an energy-efficient and real-time communication link between the geocache beacon and the user's smartphone. This technology not only enables proximity detection but also enhances the overall geocaching adventure by providing directional guidance, showcasing the versatility and efficiency of BLE in recreational applications.
 
-
-### LoRa Authentication
-
-LoRa, or Long Range, is a wireless communication technology known for its extended range and low power consumption. In the Cache Compass Tracker project, LoRa plays a critical role in adding an extra layer of security to ensure that only authorized users can claim a cache.
-
-#### Security Enhancement
-
-The Cache Compass Tracker leverages LoRa technology to implement a robust authentication mechanism. Authentication is a crucial aspect of geocaching, especially when users are in close proximity to the hidden cache. By utilizing LoRa, the project introduces a secure communication channel that verifies the user's identity before allowing them to claim the cache.
-
 #### Initiating LoRa Communication
 
-When a user is in the immediate vicinity of the cache and intends to claim it, the LoRa communication is initiated. This process ensures that the user's identity is confirmed through a secure and long-range connection, preventing unauthorized individuals from making accidental or false claims.
-
-#### Preventing Accidental Claims
-
-The implementation of LoRa authentication adds a level of sophistication to the geocaching experience by preventing accidental claims. This is particularly important in scenarios where multiple users might be in proximity to the cache simultaneously. The secure nature of LoRa communication helps maintain the authenticity of the geocaching adventure, ensuring that the rightful discoverer is recognized.
-
-#### Authentic and Enjoyable Experience
-
-By incorporating LoRa authentication, the Cache Compass Tracker enhances the overall geocaching experience, making it more authentic and enjoyable for all participants. Users can confidently explore hidden caches, secure in the knowledge that their discoveries are protected by a secure communication protocol.
-
-
-
-In summary, the Cache Compass Tracker's implementation of LoRa authentication introduces a secure and long-range communication layer, safeguarding the geocaching experience.
+When a user is in the immediate vicinity of the cache and intends to claim it, the LoRa communication is initiated. This process ensures that the user's identity is confirmed through a long-range connection, preventing unauthorized individuals from making accidental or false claims.
 
 
 ## Features
