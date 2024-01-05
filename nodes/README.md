@@ -171,6 +171,8 @@ To test the BLE server while the BLE app for Android was being developed, we cre
 
 ### Communication with Broker
 
+The GeoCache communicates with the Broker by LoRa 868
+
 #### LoRa
 
 #### Message Types
