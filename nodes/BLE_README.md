@@ -1,6 +1,6 @@
 ![image](https://github.com/CatarinaBarroqueiro/CacheCompass_Tracker/assets/72763845/e9e85ffa-a6f8-47e3-96c6-9a82e558fce5)# BLE Concepts
 
-## Usage on the project
+## Why BLE?
 
 In geocaching is very important for the people to be able to guide themselves with some mechanism helping through the path. Normally the technology chosen for this goal is GPS. However, in certain locations the GPS signal might be weak or inexistent, leading to more difficulties on finding the stashes by the players.
 Bluetooth Low Energy (BLE) comes in clutch in this situation, since it can be used between two devices with it, meaning we can use it to create a communication between the cache and the user's phone. This way, when the user gets close enough of the BLE range, he can be guided to the cache, without having to worry about GPS functioning.
@@ -35,10 +35,48 @@ While RSSI is a beneficial tool for BLE-based geocaching, providing a low-cost a
 
 ### Service and Characteristics
 
-### BLE Notify method (our method)
+### BLE Notify (Our method) and User's message to the server
+
+BLE Notify is a feature of the BLE protocol that allows a BLE peripheral device to asynchronously notify a connected device, about changes in its characteristics, for example. 
+We decided to implement a simplified method instead of using this feature.
+
+Before we present our idea, we need to understand the format of the messages we are sending to the server when the user finds the cache. The packet format is shown below:
+
+![BLE Message Format](/images/BLEmessage_format.png "BLE Message Format")
+
+The two most important fields for our explanation are the packet and user ID's, since the header is only used to occupy an empty space to make sure the message has the correct format and the type corresponds to an opening request.
+
+The reason of having a packet ID will be described on the next paragraph. The User ID is used to identify the person playing and making sure they have the right to access the cache.
+
+Now that the message form is presented, we can go through our BLE notify replacing method.
+When the user founds the cache and their information is sent to the server, by writing on it's characteristic, the server needs a way of knowing the data has been updated. Our way of doing this was having a packet ID field which will certainly be different for every message sent. The packet ID is incremented every time the user sends a message. When the server receives the information, it verifies if the value on the characteristic has changed or not, guarantying that if it has, the new information is processed.
+
+The function below illustrates the server's procedure for verifying changes in data:
+
+```cpp
+uint8_t* BleServer::read(uint8_t* len) {
+    uint8_t* value = pCharacteristic->getData();
+
+    if (value[0] != 0x2f && connected) {
+        *len = pCharacteristic->getLength();
+        // Check if the value received is different from the previous
+        if (memcmp(value, previousValue, *len) != 0) {
+            // Update previous value
+            memcpy(previousValue, value, *len);
+            // Return the new value
+            return value;
+        }
+        return nullptr;
+    }
+
+    return nullptr;
+}
+```
+
+We came into the conclusion that our method is not the best way to do this but we used it as a workaround in order to do it faster. Ideally, the client should use BLE notify to inform the data has been changed on that characteristic.
 
 ### Messages between server and app
 
-
+### GATT
 
 
