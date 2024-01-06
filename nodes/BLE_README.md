@@ -26,7 +26,7 @@ Other communication modes include:
 
 GATT (Generic Attributes) outlines how BLE devices exchange data through a hierarchical structure. This architecture comprises profiles, services, characteristics, and descriptors, with each layer possessing a unique UUID (Universally Unique Identifier) for identification purposes. Below is a depiction of the BLE hierarchy.
 
-![Hierarchy BLE](/images/ble_profile.png "Hierarchy BLE")
+![Hierarchy BLE](/nodes/images/ble_profile.png "Hierarchy BLE")
 
 Hierarchical Elements:
 
@@ -91,7 +91,7 @@ In the setup, we created a BLE device called "Geocache_" followed by node ID. Af
 
 Firstly, to test the communication we used a application named "nRF Connect" and we confirm that the results were shown in the image below.
 
-![nRF](/images/nRF.png "nRF")
+![nRF](/nodes/images/nRF.jpeg "nRF")
 
 ### RSSI Obtainment (Scans)
 
@@ -101,7 +101,7 @@ To translate the RSSI into a distance measurement, a commonly used formula takes
 
 The formula is as follows:
 
-![RSSI Formula](/images/formulaRSSI.png "RSSI Formula")
+![RSSI Formula](/nodes/images/formulaRSSI.png "RSSI Formula")
 
 In this formula, Measured Power is a factory-calibrated constant indicating the RSSI value at a one-meter distance from the beacon. RSSI is the current signal strength measured by the receiver. The N factor represents the signal propagation constant or path-loss exponent, which varies depending on environmental factors like walls and other obstacles that could attenuate the signal.
 
