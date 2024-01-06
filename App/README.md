@@ -2,14 +2,14 @@
 
 ## Context
 
-The primary purpose of our mobile application is to integrate the client's Bluetooth Low Energy (BLE) capabilities with their mobile device. This integration enables users to simulate real-world scenarios and determine their proximity to a geocache. When a user is close to a cache, the user confirms that he founds the cache and send a message to the server to acknowledge the discovery. This confirmation allows the user to proceed to the next cache search.
+The primary purpose of our mobile application is to integrate the client's Bluetooth Low Energy (BLE) capabilities with their mobile device. This integration enables users to simulate real-world scenarios and determine their proximity to a geocache. When a user is close to a cache, the user confirms that he founds the cache and a message is sent to the server to acknowledge the discovery. This confirmation allows the user to proceed to the next cache search.
 
 For this implementation, we selected Android Studio as our development environment. Android Studio provides the essential tools required to establish communication between the app and the server. It allows for the necessary permissions to connect to a Bluetooth server, scan for geocaches, and access location services for scanning purposes.
 
 
 ## Login Page
 
-![Login Page](/App/images/loginPage.jpg "Login Page")
+![Login Page](/App/images/loginPage.png "Login Page")
 
 ### Database access
 
@@ -31,7 +31,7 @@ private void getUserData(String email) {
 }
 
 ```
-Upon retrieving the user ID, the app checks if the provided password exists and matches the user's password. If successful, this variable is stored and passed to the next page as we can see in the following code.
+Upon retrieving the user ID, the app checks if the provided password exists and matches the user's password. If successful, user's ID is stored and passed to the next page as we can see in the following code.
 ```java
 @Override
 protected void onPostExecute(String result) {
@@ -68,13 +68,74 @@ public void openMainRoom(short userId) {
 ```
 ## Main Page
 
-The user ID obtained from the login page is passed to the main game page to write a characteristic. Upon locating a cache, the user use the characteristic to sends a message to the server to indicate their discovery, allowing them to proceed to the next cache.
-
 The next image shown is the layout of the main game page.
+<!-- TODO Change image-->
+![Main Page](/App/images/main_page.png "Main Page")
 
-![Login Page](/App/images/loginPage.jpg "Login Page")
+### RSSI with Scans and GATT Connection
 
-The following code represents the entire process explained in the ble section, i.e. if it has found a geocache service it opens it, then does the same for the feature and finally creates the message format to be able to send the message to the devices with the found feature.
+To start the scanning in order to obtain the RSSI values and eventually connecting to the server for transmitting user's information, we implemented a broadcast receiver whithin the "OnCreate" function of the page. This receiver is designed to capture signals from other devices engaged in advertising, as illustrated in the code below: 
+
+```java
+private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        private int consecutiveLowDistanceCount = 0;
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+
+            // ... Bluetooth Permission granting ...
+
+            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                short rssi = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI, Short.MAX_VALUE);
+
+                String deviceName = device.getName();
+                if (deviceName != null && isGeoCacheDevice(deviceName)) {
+                    double distance = calculateDistance(rssi);
+
+            // ...
+```
+
+To provide users with a more or less accurate estimation of their distance from the geocache, the distance is calculated using the RSSI value obtained during the scan, as outlined in the BLE RSSI chapter.
+
+```java
+private double calculateDistance(int rssi) {
+    double RSSI_0 = -59.0; // Adjust this value based on your specific environment
+    double N = 2.0;
+    return (Math.pow(10, ((RSSI_0 - rssi) / (10.0 * N))));
+}
+```
+
+We have defined a scan period of 1 second and introduced a new variable, "consecutiveLowDistanceCount", to ensure that the confirmation pop-up for discovering the geocache only appears when the user is in close proximity to the geocache for 2 or more seconds. Once the user confirms the geocache has been found, the user's device establishes a connection with the geocache using GATT. 
+
+Upon successfully establishing the connection, service discovery is initiated to access the server characteristic for writing user's information:
+
+```java
+@Override
+        public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                if (newState == BluetoothGatt.STATE_CONNECTED) {
+                    onConnected();
+
+                    if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED) {
+                        return;
+                    }
+
+                    gatt.discoverServices();
+                }
+            } else {
+                showToastOnUIThread("Connection failed with status: " + status);
+            }
+        }
+```
+
+
+### Sending user's information to server
+
+The user ID obtained from the login page is passed to the main game page to write on the characteristic. Upon locating a cache, the app uses the characteristic to send a message to the server indicating the discovery, allowing the user to proceed to the next cache.
+
+The following code represents the entire process referred in the BLE Notify and User's message to the server chapter, of creating the message with the right format using user's information and writing it on the server's characteristic to check the user's right to open the geocache.
 
 ```java
 @Override
@@ -140,19 +201,50 @@ private static final int MESSAGE_USER_ID_SIZE = 2;
 
 These specifications are crucial for the proper functioning of the app's BLE communication features.
 
-### RSSI
-...
+
+### Disconnecting, restart Scans
+
+After finding the geocache, user can click on the clear button, to empty the geocaches list, restart the scans and look for other geocaches. The code snippet below shows the disconnect done after this button click.
 
 ```java
-private double calculateDistance(int rssi) {
-    double RSSI_0 = -59.0; // Adjust this value based on your specific environment
-    double N = 2.0;
-    return (Math.pow(10, ((RSSI_0 - rssi) / (10.0 * N))));
-}
+private void disconnectFromServer() {
+        if (gatt != null) {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED) {
+                return;
+            }
+            gatt.disconnect();
+            gatt.close(); // Optionally, close the GATT client completely
+            gatt = null;
+            isConnected = false;
+        }
+    }
 ```
 
-### Connect and scan
-...
+The Bluetooth Adapter then starts the discovery back again. The following function shows all the process together.
 
-### disconnect, new scan
-...
+```java
+public void clearScannedList(View view) {
+        deviceDetailsList.clear();
+        arrayAdapter.notifyDataSetChanged();
+
+        if (isConnected) {
+            disconnectFromServer(); // Disconnect from the server
+            packetId++; // Increment the packetId for the new scan
+
+            // Reset states to allow new scan
+            isConnected = false;
+            shouldContinueScanning = true;
+            alreadyPopup = false;
+            
+            // ... Permission granting ...
+            
+            if (mBluetoothAdapter != null && !mBluetoothAdapter.isDiscovering()) {
+                
+                // ... Permission granting ...
+
+                mBluetoothAdapter.startDiscovery();
+            }
+        }
+    }
+
+```
