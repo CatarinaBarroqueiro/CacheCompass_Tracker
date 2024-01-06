@@ -302,11 +302,112 @@ uint8_t* LoraMessage::open_request(size_t& size, uint16_t nodeId,
 
 ### Opening Box
 
-### Communication with BoxOpener
+To simulate the GeoCache opening upon the reception of the authorization for an user, we develop a small box with a 9g Servo, which would push the lid of the box, simulating that the user is able to interact with it's insides. Unfortunately, due to the lack of pins referred above, the **ESP32CAM** couldn't directly use an *IO* pin to control the Servo. So we had the idea to use another ESP32 and establish WiFi communication between the ESP32 with LoRa and the other interacting with the Servo.
 
-#### WiFi
+#### Communication with Box Opener
+
+We established that the GeoCache would be the WiFi client, which would connect the [boxOpener](./boxOpener/src/main.cpp) by an *ad-hoc* network. This way, upon booting up, the client would connect to the server, forming a **peer-to-peer (P2P)** network. As to establish the TCP connection and server, we went with the **AsyncTCP** library, by *esphome* [^7].
+
+The **WifiClient** class is available in the [Header](./geocache/include/wifiClient.h) and [Src](./geocache/src/wifiClient.cpp) files. With the **WifiServer** class also in the same methodology, with separate [Header](./boxOpener/include/wifiServer.h) and  [Src](./boxOpener/src/wifiServer.cpp) files. Both of them have defined the same **SSID**, server **Port** and **MTU**:
+```c++
+//! Default SSID for AD_HOC network
+#define SSID_AD_HOC "ad_hoc_esp32"
+//! Default Password for AD_HOC network
+#define PASSWORD_AD_HOC "123456789"
+//! Server port for the server to be bounded
+#define SERVER_PORT 80
+//! Maximum Transmission Unit for communication
+#define MTU 1500
+```
+
+Being *Asynchronous* server and client, their functioning is based on callbacks, which determines what to execute in certain situations. For example, in the following code snippet, we can see that the Client is binding an `on_receive` function when any data is received from the client:
+```c++
+// Create a lambda function that captures 'this' and calls 'on_receive'
+//  --> because callbacks can't access non-static functions directly
+auto onDataCallback = [this](void* arg, AsyncClient* client, void* data,
+                                size_t len) {
+    this->on_receive(arg, client, data, len);
+};
+
+// Bind the lambda function to 'client.onData'
+client.onData(onDataCallback, this);
+
+while (!client.connect(serverIP, SERVER_PORT)) {
+    Serial.print("Attempting to connect to Server IP: ");
+    Serial.print(serverIP);
+    Serial.print(", Port: ");
+    Serial.println(SERVER_PORT);
+    delay(1000);
+}
+```
 
 #### Messages
+
+Since we are dealing with *ad-hoc* communication between the two board, and the only interaction would be for the ESP32 with LoRa to signal the ESP32 with Servo to open the box, we made as to any message received by the ESP32 with servo would trigger the opening of box. This message can be viewed in the `ping` function:
+```c++
+void WifiClient::ping() {
+    uint8_t message[6];
+
+    message[0] = packetCounter;
+    message[1] = 'H';
+    message[2] = 'e';
+    message[3] = 'l';
+    message[4] = 'l';
+    message[5] = 'o';
+
+    send(message, 6);
+}
+```
+
+#### Servo
+
+To interact with the servo, after many attempts, we chose the **ESP32Servo** library, by *madhephaestus*. This allowed us to implement in the [BoxOpener](./boxOpener/src/main.cpp) the library seamlessly. 
+As present above, in the images of the final product, a *three-state* button can also be viewed. We use this button to adjust the position of the servo, this is because we are using a *360º* Servo, which works with rotation time, not angle. This made our work a lot harder, because, probably due to not using the correct power-source (in our case 5v from our laptop usb, dedicated only to the servo, because the ESP32 could only supply 3v3), the servo position wasn't linear. For example, we would rotate Counter-clockwise 200ms and the servo would stop at 45º, but the same time for clockwise would only rotate *35-40º*. In the code itself, we started by defining PINs and servo full-rotation time:
+```c++
+#define PIN_SERVO 13
+#define MIN_SERVO_US 1000  // 500 default
+#define MAX_SERVO_US 2000  // 2400 default
+#define PIN_SWITCH 14
+```
+
+In the programs `loop` function, we check if it has received an order by WiFi. If it hasn't, we check the switches state, if it's required to open or close the box. If an order to open has been received, it'll open the Box for roughly `5` seconds and then proceed to close it. This code can be found below:
+```c++
+void loop() {
+
+    if (!wifiLock) {
+        int switchValue = digitalRead(PIN_SWITCH);
+        // switchValue == HIGH -> on
+        // switchValue == LOW -> off
+
+        Serial.printf("Switch is %d and box is %d", switchValue, boxClosed);
+        Serial.println();
+
+        if (switchValue == HIGH && boxClosed) {
+            open_box();
+            boxClosed = false;
+        } else if (switchValue == LOW && !boxClosed) {
+            //close_box();
+            boxClosed = true;
+        }
+    } else {
+
+        if (counter >= 50) {
+            close_box();
+            boxClosed = true;
+            wifiLock = false;
+            counter = 0;
+        } else {
+            Serial.printf("Counter is %d", counter);
+            Serial.println();
+        }
+        counter++;
+    }
+
+    vTaskDelay(pdMS_TO_TICKS(100));
+}
+```
+
+**Note**: Before integrating the Servo into the **BoxOpener**, we developed the [boxTester](./boxTester/boxTester.ino) *Arduino* project, to test the Servo library and functions.
 
 ---
 ## Broker
@@ -333,3 +434,5 @@ uint8_t* LoraMessage::open_request(size_t& size, uint16_t nodeId,
 [^4]: ESP32CAM with SX127: https://stuartsprojects.github.io/2022/02/05/Long-Range-Wireless-Adapter-for-ESP32CAM.html
 [^5]: StuartProjects examples: (https://github.com/StuartsProjects/Devices/tree/master)
 [^6]: Airtime calculator for LoRaWAN: https://avbentem.github.io/airtime-calculator/ttn/eu868
+[^7]: Async TCP by esphone: https://registry.platformio.org/libraries/esphome/AsyncTCP-esphome
+[^8]: ESP32Servo by *madhephaestus*: https://registry.platformio.org/libraries/madhephaestus/ESP32Servo
