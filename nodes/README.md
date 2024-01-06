@@ -36,7 +36,7 @@ The final appearance of the GeoCache can be viewed in the following images:
     <img src="./images/Geocache_2.jpg" width="300" />
 </p>-->
 
-According to the **Arduino** Framework structure, the main file containing the code of the ESP32 has to have a `setup` and `loop` functions, which will configure the micro-controller and execute repeated tasks, respectively. This function is located in the [geocache folder](./geocache/src/main.cpp) and it's worth noting to point the configuration order of the services:
+According to the **Arduino** Framework structure, the main file containing the code of the ESP32 has to have a `setup` and `loop` functions, which will configure the micro-controller and execute repeated tasks, respectively. This function is located in the [geocache folder](./geocache/src/main.cpp) and it's worth noting the configuration order of the services:
 ```c++
 void setup() {
     // Initialize Serial Monitor
@@ -412,18 +412,199 @@ void loop() {
 ---
 ## Broker
 
-### Communication with GeoCache
+The Broker is the node that that interacts with the GeoCache and the AWS backend server of the company. It's responsible to:
+* Be ready to receive information from the GeoCache
+* Query the AWS backend to determine if an user is authorized to open the GeoCache
+* Upon reception of the authorization, signal it to the GeoCache and in case if the user is authorized, `POST` in the backend that the user has opened the box
+
+As can be viewed in the image bellow, this node uses two communication technologies, WiFi and LoRa. We'll only be approaching the communication over WiFi with AWS in the next sections, as LoRa as already been explained in the **GeoCache** section.
+
+![Broker core](images/Broker_core.png)
+
+The final appearance of the Broker can be viewed in the following image:
+
+![Broker image](./images/Broker.jpg)
+
+According to the **Arduino** Framework structure, the main file containing the code of the ESP32 has to have a `setup` and `loop` functions, which will configure the micro-controller and execute repeated tasks, respectively. This function is located in the [broker folder](./broker/src/main.cpp) and it's worth noting the configuration order of the services:
+```c++
+void setup() {
+    // Initialize Serial Monitor
+    Serial.begin(115200);
+    while (!Serial)
+        ;
+    Serial.println("Broker Terminal ready");
+    Serial.println();
+
+    // Setup webAPI
+    webAPI.connect_wifi();
+
+    // Setup LoRa868
+    while (!lora.configure(VERBOSE))
+        delay(3000);
+
+    // Create LoRa Task to receive data
+    //xTaskCreate(receive_lora, "receive_lora", 8000, NULL, 1, &loraTask);
+
+    Serial.println();
+}
+```
 
 ### Communication with AWS
 
-#### WiFi
+Upon reception of a message by LoRa, the Broker will evaluate and process it according to it's type, as we can see in the `process_lora_message` function:
+```c++
+void process_lora_message(uint8_t* message, uint8_t size) {
+    // Received message general info
+    MESSAGE_TYPE type = msgClass.get_type(message, size);
+    uint16_t nodeId = msgClass.get_node_id(message, size);
+    uint32_t packetId = msgClass.get_packet_id(message, size);
+
+    // Message to send variables
+    size_t sendMsgSize;
+    uint8_t* msgToSend;
+
+    Serial.print("LoRa868, Received message from GeoCache: ");
+    Serial.println(msgClass.to_string(message, size));
+
+    if (type == HELLO) {
+        msgToSend = msgClass.hello_response(sendMsgSize, nodeId, packetId);
+
+    } else if (type == OPENING_REQUEST) {
+        uint16_t userId = msgClass.get_user_id(message, size);
+        unsigned long timestamp = msgClass.get_timestamp(message, size);
+
+        // call remote service
+        Serial.println("Http, Starting requests for user authorization");
+        bool authorized = webAPI.request_user_authorized(userId);
+        webAPI.post_discovery(nodeId, userId, timestamp, authorized);
+        Serial.println("Http, all requests completed");
+        Serial.println();
+
+        msgToSend =
+            msgClass.open_response(sendMsgSize, nodeId, packetId, authorized);
+    } else if (type == OPENING_RESPONSE_ACK) {
+        return;
+    } else if (type == HELLO_RESPONSE || type == OPENING_RESPONSE) {
+        ;  // do nothing
+        return;
+    } else {
+        Serial.println("Error: Unknown message type");
+        return;
+    }
+
+    // Send response to GeoCache
+    lora.send(msgToSend, sendMsgSize);
+
+    (...)
+}
+```
+
+
+Pointing out the `OPENING_REQUEST` type, the Broker will use our **WebAPI** class defined in separate [Header](./broker/include/webAPI.h) and [Src](./broker/src/webAPI.cpp) files.
+
+In this class, we start by defining the WiFi network *SSID* and Password (needs internet access), as well as the *URL* for the AWS instance. Then the path of the requests/post will be making:
+```c++
+//! SSID of your internet enabled WiFi network
+const char WIFI_SSID[] = "YOUR_WIFI_SSID";  // CHANGE IT
+//! Password of your internet enabled WiFi network
+const char WIFI_PASSWORD[] = "YOUR_WIFI_PASSWORD";  // CHANGE IT
+//! URL or Host name of the API service
+const String HOST_NAME = "http://51.20.64.70:3000";
+//! Path of the request of user by Id
+const String USER_ID_PATH_NAME = "/user/id";
+//! Query variables of the request of user by Id
+const String USER_ID_QUERY_VARS = "id=";
+//! Path of the request of discovery
+const String DISCOVERY_PATH_NAME = "/discovery";
+```
+
+Since the Backend server developed in AWS uses the *JSON* format to communicate over *HTTP*, we used the **Arduino_JSON** library, by *Arduino Libraries*. [^10]
+With this library, placing GET's and POST's is a lot easier, as can be viewed by `request_user_authorized` and `post_discovery`, which will query if the user is authorized and post if the user has opened the box, respectively:
+```c++
+bool WebAPI::request_user_authorized(uint16_t userId) {
+    String infoString = HOST_NAME + USER_ID_PATH_NAME + "?" +
+                        USER_ID_QUERY_VARS + String(userId);
+
+    Serial.println(" - Query URL: " + infoString);
+
+    http.begin(infoString);
+    http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+
+    int httpCode = http.GET();
+    bool authorized = false;
+
+    // httpCode will be negative on error
+    if (httpCode > 0) {
+        // file found at server
+        if (httpCode == HTTP_CODE_OK) {
+            String payload = http.getString();
+            Serial.println(" - Received payload:" + payload);
+
+            JSONVar response = JSON.parse(payload);
+
+            if (JSON.typeof(response) == "array") {
+
+                authorized = response[0]["flag"];
+                Serial.printf(" - User is %s to access geocache",
+                              authorized ? "Authorized" : "Unauthorized");
+                Serial.println();
+            }
+(...)
+}
+
+bool WebAPI::post_discovery(uint16_t nodeId, uint16_t userId,
+                            unsigned long timestamp, bool authorized) {
+
+    String infoString = HOST_NAME + DISCOVERY_PATH_NAME;
+
+    Serial.println(" - Posting Discovery to URL:" + infoString);
+
+    http.begin(infoString);
+    http.addHeader("Content-Type", "application/json");
+
+    JSONVar discData;
+    discData["box"] = nodeId;
+    discData["user"] = userId;
+    discData["discTime"] = get_time_string(timestamp);
+    discData["authorized"] = authorized;
+
+    String jsonString = JSON.stringify(discData);
+    Serial.println(" - Post data: " + jsonString);
+    int httpCode = http.POST(jsonString);
+
+    bool status = false;
+
+    // httpCode will be negative on error
+    if (httpCode > 0) {
+        // file found at server
+        if (httpCode == HTTP_CODE_OK || httpCode == 201) {
+            Serial.println(" - Post executed successfully ");
+            status = true;
+        } else {
+            // HTTP header has been send and Server response header has been handled
+            Serial.printf(" - [HTTP] GET... code: %d", httpCode);
+            Serial.println();
+        }
+    } else {
+        Serial.printf(" - Error: HTTP, GET... failed: %s",
+                      http.errorToString(httpCode).c_str());
+        Serial.println();
+    }
+
+    http.end();
+
+    return status;
+}
+```
+
+Some of the core here used was derived from examples in ESP32IO. [^9]
+
+**Note**: Before integrating the HTTP library into the **Broker**, we developed the [httpRequester](./httpRequester/httpRequester.ino) *Arduino* project, to test the HTTP library and functions.
 
 ---
 ## Results and Analysis
 
----
-## Future Work
-
+It's our conviction that the work developed in this chapter was fruitful and revealed deeper insights into the world of not only embedded devices, but communication technologies. It proved to be challenging to developed and interact with all the technologies mentioned. The biggest problems we had were working with LoRa especially configuring it in the **ESP32CAM**, with it's limited pin layout and communicating with the BLE app. However, our previous knowledge of some of the technologies here and basic network architecture and design principles enabled us to overcome the challenges posed.
 
 ---
 # References
@@ -435,4 +616,6 @@ void loop() {
 [^5]: StuartProjects examples: (https://github.com/StuartsProjects/Devices/tree/master)
 [^6]: Airtime calculator for LoRaWAN: https://avbentem.github.io/airtime-calculator/ttn/eu868
 [^7]: Async TCP by esphone: https://registry.platformio.org/libraries/esphome/AsyncTCP-esphome
-[^8]: ESP32Servo by *madhephaestus*: https://registry.platformio.org/libraries/madhephaestus/ESP32Servo
+[^8]: ESP32Servo by madhephaestus: https://registry.platformio.org/libraries/madhephaestus/ESP32Servo
+[^9]: ESP32io: https://esp32io.com/tutorials/esp32-http-request
+[^10]: Arduino JSON: https://registry.platformio.org/libraries/arduino-libraries/Arduino_JSON
