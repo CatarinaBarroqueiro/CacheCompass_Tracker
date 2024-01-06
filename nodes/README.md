@@ -11,6 +11,8 @@ The systems developed in this sections are [ESP32-DEVKITC](https://www.digikey.p
 The ESP32 can be programmed using the VSCode plugin [ESP-IDF](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/index.html#introduction), which enables to program directly in the board native functions and registers, with no framework or translation layer.
 However, in our case, we chose to develop using the [Arduino Framework](https://www.arduino.cc/) directly in VSCode, with the [PlatformIO](https://platformio.org/)  plugin. This approach allowed use to developed, flash and monitor code for the ESP32 all in one platform.
 
+In the upcoming sections analyzing the work done, we urge the reader to give a sneak-peak specially in the `Header`, which have appropriate documentation describing the goal of each method and class, as well as the `Src` or *source-code* , which contains all the code to implement the desired outcome of the functions/classes.
+
 ---
 ## GeoCache
 
@@ -171,11 +173,132 @@ To test the BLE server while the BLE app for Android was being developed, we cre
 
 ### Communication with Broker
 
-The GeoCache communicates with the Broker by LoRa 868
+The GeoCache communicates with the Broker by LoRa 868 to verify the authenticity of an user and determine if he has authorization to open the GeoCache. Before transmission of a message, the GeoCache sends a `HELLO` message to the Broker and waits for `HELLO_RESPONSE`, which signals that the GeoCache is able to send information.
 
 #### LoRa
 
+Located in the `shared/lora` folder is the **LoRa868** library, as following the same methodology as before, it has separate [Header](./shared/lora/include/lora.h) and [Src](./shared/lora/src/lora.cpp) files.
+Since we lacked the number of regular **ESP32-DEVKITC** to be used, we needed to resort to spare **ESP32CAM** micro-controller. This revealed to be a set-back, due to the **ESP32CAM** not having as many available *pins* as the **ESP32-DEVKITC**. 
+We needed to modifications the board and remove the transistor from the white LED to free up Pin 4 for SCK [^4] and even then we couldn't allocate an additional interrupt pin to signal the dispatch and reception of packets. So we used the [SX12XX − LoRa library](https://github.com/StuartsProjects/SX12XX-LoRa/tree/master), which circumvents the need
+for interrupt pins by directly accessing the internal registers of the *Semtech sx127* chip, bypassing reliance on interrupt routines. 
+In our case, SD Card wasn't needed, but this modification will affect scenarios where SD Card and LoRa may be used at the same time. To be able to use them, one needs to be deactivated when the other is in use. Since the SD card is built-in to the board, both reliant on Serial-Programmable Interface (SPI) communication through the Master-Output
+Slave-Input (MOSI)/Master-Input Slave-Output (MISO) lines.
+
+The defined pins and definitions for LoRa can be found in the code snippet below:
+```c++
+//! Select pin on SPI interface
+#define NSS 12
+//! Reset pin on SPI Interface
+#define NRESET 15
+//! SCK or clock pin on SPI interface
+#define SCK 4
+//! MISO or data to master pin on SPI interface
+#define MISO 13
+//! MOSI or data from master pin on SPI interface
+#define MOSI 2
+//! pin number for ESP32CAM on board red LED, set logic level low for on
+#define REDLED 33
+//! Name of the device used
+#define LORA_DEVICE DEVICE_SX1278
+/*! Although 255 is the maximum packet size, 222 is the maximum size allowed
+      by LoraWan (+13 bytes overhead) - https://avbentem.github.io/airtime-calculator/ttn/eu868 */
+#define LORA_PAYLOAD 222
+```
+
+Since our aim of this project wasn't to test the capabilities of distance and Packet-loss, we went with the lowest **Spreading-Factor** and **Coding-Rate**, as to have low air-time:
+```c++
+(..)
+// Transmission Frequency - 868 MHz
+const uint32_t Frequency = 868000000;
+// Offset frequency for calibration purposes
+const uint32_t Offset = 0;
+// LoRa Bandwidth
+const uint8_t Bandwidth = LORA_BW_500;
+// LoRa spreading factor - SF7 is lowest, which means more data rate, but
+//  less range and more prone to errors. SF12 is highest and more robust
+const uint8_t SpreadingFactor = LORA_SF7;
+// LoRa coding rate
+const uint8_t CodeRate = LORA_CR_4_5;
+// low data rate optimisation setting
+const uint8_t Optimisation = LDRO_AUTO;
+// LoRa Tx power
+const int8_t TxPower = 10;
+// Timeout on Received, to wait for a packet
+const uint32_t RxTimeoutMs = 5000;
+// Timeout on Transmitter, to wait for a packet
+const uint32_t TxTimeoutMs = 2500;
+(...)
+```
+
+Having LoRa configured, we managed to transfer information, with very low **Average-Packed Delay (APD)**, but with occasional errors. However, since 868 Mhz band is regulated with 1% duty-cycle, we had to implement a duty cycle controller, to guarantee that each second spent transmitting was equivalent to 100 seconds in standby [^6]. Since the LoRa transmit function is program blocking and only returns when the packet is transferred, we timed it’s execution and multiplied it by 100. This way, every time that the send function is called, a `false` is returned in case of error
+or duty-cycle is still in effect and `true` if the message was sent successfully:
+```c++
+(...)
+// Check if duty cycle is enabled and if it's still complying with timing constraints
+unsigned long elapsedTime = millis() - lastTransmissionTime;
+if ((elapsedTime < dutyCycleTime) && dutyCycleEnabled) {
+    return false;
+}
+
+// Tick time before calling function to send
+unsigned long timeBeforeSending = millis();
+// Call Blocking function to send the packet to the receiver, which returns
+//  the packet length if OK, otherwise 0 if error occurred
+uint8_t bytesSent =
+    LoRa.transmitIRQ(buffer, size, TxTimeoutMs, TxPower, WAIT_TX);
+// Tick time after calling function to send
+lastTransmissionTime = millis();
+
+// Calculate duty cycle, according to the time it took to send the packet
+dutyCycleTime =
+    (lastTransmissionTime - timeBeforeSending) * 100;  // time in seconds
+(...)
+```
+
+The **LoRa868** class also has methods to configure the *Semtech sx127* chip, send and received messages, determine if an error ocurred in the reception of the packet and to terminate or place the chip in *deep-sleep*.
+
+Some of the core here used was derived from examples in StuartProjects. [^5]
+
 #### Message Types
+
+Located in the `shared/message` folder is the **LoRaMessage** class, which creates and stores in the ESP32 *heap* a message. The [Header](./shared/message/include/message.h) and [Src](./shared/message/src/message.cpp) are located in the same folder.
+
+The LoRa message is implemented by both the Broker and the GeoCache to have a common message structure. There are 5 types of messages used in communications, they are present in the following image:
+
+![lora message types](./images/message_format.jpg)
+
+Each message is used in the following situations:
+* **HELLO**: Sent by the GeoCache to signal the need to transmit information
+* **HELLO_RESPONSE**: Sent by the Broker to the GeoCache, signalling it's ready to receive information
+* **OPENING_REQUEST**: Sent by the GeoCache to the Broker, carrying the information of the user request to open
+* **OPENING_RESPONSE**: Sent by the Broker to the GeoCache indicating if the user is authorized ot not
+* **OPENING_RESPONSE_ACK**: Sent by the GeoCache to the Broker, informing the correct reception of the **OPENING_RESPONSE** and signalling the conversation flow completion
+
+During development, some issues occurred in this part, due to the nature of memory handling and operation, as can be evidenced by the following code snippet of the `open_request` function:
+```c++
+uint8_t* LoraMessage::open_request(size_t& size, uint16_t nodeId,
+                                   uint32_t packetId, uint16_t userId,
+                                   unsigned long timestamp) {
+    size = MESSAGE_TYPE_SIZE + MESSAGE_NODE_ID_SIZE + MESSAGE_PACKET_ID_SIZE +
+           MESSAGE_USER_ID_SIZE + MESSAGE_TIMESTAMP_SIZE;
+    uint8_t tempMessage[MAX_MESSAGE_SIZE];
+
+    // Place the header in the new message
+    MESSAGE_TYPE msgType = OPENING_REQUEST;
+    memcpy(tempMessage, &msgType, MESSAGE_TYPE_SIZE);
+    memcpy(tempMessage + MESSAGE_TYPE_SIZE, &nodeId, MESSAGE_NODE_ID_SIZE);
+    memcpy(tempMessage + (MESSAGE_TYPE_SIZE + MESSAGE_NODE_ID_SIZE), &packetId,
+           MESSAGE_PACKET_ID_SIZE);
+    memcpy(tempMessage + (MESSAGE_TYPE_SIZE + MESSAGE_NODE_ID_SIZE +
+                          MESSAGE_PACKET_ID_SIZE),
+           &userId, MESSAGE_USER_ID_SIZE);
+    memcpy(tempMessage + (MESSAGE_TYPE_SIZE + MESSAGE_NODE_ID_SIZE +
+                          MESSAGE_PACKET_ID_SIZE + MESSAGE_USER_ID_SIZE),
+           &timestamp, MESSAGE_TIMESTAMP_SIZE);
+
+    return save_message_memory(tempMessage, size);
+}
+```
 
 ### Opening Box
 
@@ -207,3 +330,6 @@ The GeoCache communicates with the Broker by LoRa 868
 [^1]: ESP32 product page: https://www.espressif.com/en/products/socs/esp32
 [^2]: BLE example: https://github.com/nkolban/esp32-snippets/blob/master/cpp_utils/tests/BLE%20Tests/SampleServer.cpp
 [^3]: BLE tutorial: https://www.youtube.com/watch?v=0Yvd_k0hbVs&t=138s
+[^4]: ESP32CAM with SX127: https://stuartsprojects.github.io/2022/02/05/Long-Range-Wireless-Adapter-for-ESP32CAM.html
+[^5]: StuartProjects examples: (https://github.com/StuartsProjects/Devices/tree/master)
+[^6]: Airtime calculator for LoRaWAN: https://avbentem.github.io/airtime-calculator/ttn/eu868
