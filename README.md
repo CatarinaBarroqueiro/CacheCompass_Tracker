@@ -645,11 +645,11 @@ The final appearance of the GeoCache can be viewed in the following images:
 
 <!--
 <p float="left">
-    <img src="./images/Geocache_1.jpg" width="300" />
-    <img src="./images/Geocache_2.jpg" width="300" />
+    <img src="nodes/images/Geocache_1.jpg" width="300" />
+    <img src="nodes/images/Geocache_2.jpg" width="300" />
 </p>-->
 
-According to the **Arduino** Framework structure, the main file containing the code of the ESP32 has to have a `setup` and `loop` functions, which will configure the micro-controller and execute repeated tasks, respectively. This function is located in the [geocache folder](./geocache/src/main.cpp) and it's worth noting the configuration order of the services:
+According to the **Arduino** Framework structure, the main file containing the code of the ESP32 has to have a `setup` and `loop` functions, which will configure the micro-controller and execute repeated tasks, respectively. This function is located in the [geocache folder](nodes/geocache/src/main.cpp) and it's worth noting the configuration order of the services:
 ```c++
 void setup() {
     // Initialize Serial Monitor
@@ -686,7 +686,7 @@ The User Device can then scan for the GeoCaches with the configured name and upo
 
 #### BLE
 
-Following an object-oriented approach and a good development structure in C/C++, we kept separate files for the declarations and source code. The [header](./geocache/include/bleServer.h) is located at `./geocache/include/bleServer.h` and [src](./geocache/src/bleServer.cpp) at `./geocache/src/bleServer.cpp`.
+Following an object-oriented approach and a good development structure in C/C++, we kept separate files for the declarations and source code. The [header](nodes/geocache/include/bleServer.h) is located at `nodes/geocache/include/bleServer.h` and [src](nodes/geocache/src/bleServer.cpp) at `nodes/geocache/src/bleServer.cpp`.
 Analyzing the `BleServer` class, we first have macros to define the maximum **MTU** for the ESP32, as well as for our **Service** and **Characteristic**:
 ```c++
 //! Maximum Transmission Unit for BLE communication, it's 251 since esp32s
@@ -759,7 +759,7 @@ Some of the code used here as gathered from arduino example for BLE by Evandro C
 
 #### Message Types
 
-Located in the `shared/message` folder is the **BleMessage** class, which creates and stores in the ESP32 *heap* a message. The [Header](./shared/message/include/message.h) and [Src](./shared/message/src/message.cpp) are located in the same folder.
+Located in the `shared/message` folder is the **BleMessage** class, which creates and stores in the ESP32 *heap* a message. The [Header](nodes/shared/message/include/message.h) and [Src](nodes/shared/message/src/message.cpp) are located in the same folder.
 
 Theres only two message types:
 * **open_request**, to ask the GeoCache to open and has the following fields:
@@ -782,7 +782,7 @@ bleClient.send(msgToSend, sendMsgSize);
 
 #### Extras
 
-To test the BLE server while the BLE app for Android was being developed, we created the [User Device](./userDevice/src/main.cpp) node, which would connect to the Server and periodically signal it to open the GeoCache. For this, we also developed a **BleClient** class with dedicated [Header](./userDevice/include/bleClient.h) and [Src](./userDevice/src/bleClient.cpp) files. We won't be discussing them here, since the scope of the project would be to work with the BLE app, which is also explained in another section.
+To test the BLE server while the BLE app for Android was being developed, we created the [User Device](nodes/userDevice/src/main.cpp) node, which would connect to the Server and periodically signal it to open the GeoCache. For this, we also developed a **BleClient** class with dedicated [Header](nodes/userDevice/include/bleClient.h) and [Src](nodes/userDevice/src/bleClient.cpp) files. We won't be discussing them here, since the scope of the project would be to work with the BLE app, which is also explained in another section.
 
 ### Communication with Broker
 
@@ -790,7 +790,7 @@ The GeoCache communicates with the Broker by LoRa 868 to verify the authenticity
 
 #### LoRa
 
-Located in the `shared/lora` folder is the **LoRa868** library, as following the same methodology as before, it has separate [Header](./shared/lora/include/lora.h) and [Src](./shared/lora/src/lora.cpp) files.
+Located in the `shared/lora` folder is the **LoRa868** library, as following the same methodology as before, it has separate [Header](nodes/shared/lora/include/lora.h) and [Src](nodes/shared/lora/src/lora.cpp) files.
 Since we lacked the number of regular **ESP32-DEVKITC** to be used, we needed to resort to spare **ESP32CAM** micro-controller. This revealed to be a set-back, due to the **ESP32CAM** not having as many available *pins* as the **ESP32-DEVKITC**. 
 We needed to modifications the board and remove the transistor from the white LED to free up Pin 4 for SCK [^4] and even then we couldn't allocate an additional interrupt pin to signal the dispatch and reception of packets. So we used the [SX12XX − LoRa library](https://github.com/StuartsProjects/SX12XX-LoRa/tree/master), which circumvents the need
 for interrupt pins by directly accessing the internal registers of the *Semtech sx127* chip, bypassing reliance on interrupt routines. 
@@ -874,7 +874,7 @@ Some of the core here used was derived from examples in StuartProjects. [^5]
 
 #### Message Types
 
-Located in the `shared/message` folder is the **LoRaMessage** class, which creates and stores in the ESP32 *heap* a message. The [Header](./shared/message/include/message.h) and [Src](./shared/message/src/message.cpp) are located in the same folder.
+Located in the `shared/message` folder is the **LoRaMessage** class, which creates and stores in the ESP32 *heap* a message. The [Header](nodes/shared/message/include/message.h) and [Src](nodes/shared/message/src/message.cpp) are located in the same folder.
 
 The LoRa message is implemented by both the Broker and the GeoCache to have a common message structure. There are 5 types of messages used in communications, they are present in the following image:
 
@@ -919,9 +919,9 @@ To simulate the GeoCache opening upon the reception of the authorization for an 
 
 #### Communication with Box Opener
 
-We established that the GeoCache would be the WiFi client, which would connect the [boxOpener](./boxOpener/src/main.cpp) by an *ad-hoc* network. This way, upon booting up, the client would connect to the server, forming a **peer-to-peer (P2P)** network. As to establish the TCP connection and server, we went with the **AsyncTCP** library, by *esphome* [^7].
+We established that the GeoCache would be the WiFi client, which would connect the [boxOpener](nodes/boxOpener/src/main.cpp) by an *ad-hoc* network. This way, upon booting up, the client would connect to the server, forming a **peer-to-peer (P2P)** network. As to establish the TCP connection and server, we went with the **AsyncTCP** library, by *esphome* [^7].
 
-The **WifiClient** class is available in the [Header](./geocache/include/wifiClient.h) and [Src](./geocache/src/wifiClient.cpp) files. With the **WifiServer** class also in the same methodology, with separate [Header](./boxOpener/include/wifiServer.h) and  [Src](./boxOpener/src/wifiServer.cpp) files. Both of them have defined the same **SSID**, server **Port** and **MTU**:
+The **WifiClient** class is available in the [Header](nodes/geocache/include/wifiClient.h) and [Src](nodes/geocache/src/wifiClient.cpp) files. With the **WifiServer** class also in the same methodology, with separate [Header](nodes/boxOpener/include/wifiServer.h) and  [Src](nodes/boxOpener/src/wifiServer.cpp) files. Both of them have defined the same **SSID**, server **Port** and **MTU**:
 ```c++
 //! Default SSID for AD_HOC network
 #define SSID_AD_HOC "ad_hoc_esp32"
@@ -974,7 +974,7 @@ void WifiClient::ping() {
 
 #### Servo
 
-To interact with the servo, after many attempts, we chose the **ESP32Servo** library, by *madhephaestus*. This allowed us to implement in the [BoxOpener](./boxOpener/src/main.cpp) the library seamlessly. 
+To interact with the servo, after many attempts, we chose the **ESP32Servo** library, by *madhephaestus*. This allowed us to implement in the [BoxOpener](nodes/boxOpener/src/main.cpp) the library seamlessly. 
 As present above, in the images of the final product, a *three-state* button can also be viewed. We use this button to adjust the position of the servo, this is because we are using a *360º* Servo, which works with rotation time, not angle. This made our work a lot harder, because, probably due to not using the correct power-source (in our case 5v from our laptop usb, dedicated only to the servo, because the ESP32 could only supply 3v3), the servo position wasn't linear. For example, we would rotate Counter-clockwise 200ms and the servo would stop at 45º, but the same time for clockwise would only rotate *35-40º*. In the code itself, we started by defining PINs and servo full-rotation time:
 ```c++
 #define PIN_SERVO 13
@@ -1020,7 +1020,7 @@ void loop() {
 }
 ```
 
-**Note**: Before integrating the Servo into the **BoxOpener**, we developed the [boxTester](./boxTester/boxTester.ino) *Arduino* project, to test the Servo library and functions.
+**Note**: Before integrating the Servo into the **BoxOpener**, we developed the [boxTester](nodes/boxTester/boxTester.ino) *Arduino* project, to test the Servo library and functions.
 
 ---
 ## Broker
@@ -1038,7 +1038,7 @@ The final appearance of the Broker can be viewed in the following image:
 
 ![Broker image](nodes/images/broker.png)
 
-According to the **Arduino** Framework structure, the main file containing the code of the ESP32 has to have a `setup` and `loop` functions, which will configure the micro-controller and execute repeated tasks, respectively. This function is located in the [broker folder](./broker/src/main.cpp) and it's worth noting the configuration order of the services:
+According to the **Arduino** Framework structure, the main file containing the code of the ESP32 has to have a `setup` and `loop` functions, which will configure the micro-controller and execute repeated tasks, respectively. This function is located in the [broker folder](nodes/broker/src/main.cpp) and it's worth noting the configuration order of the services:
 ```c++
 void setup() {
     // Initialize Serial Monitor
@@ -1113,7 +1113,7 @@ void process_lora_message(uint8_t* message, uint8_t size) {
 ```
 
 
-Pointing out the `OPENING_REQUEST` type, the Broker will use our **WebAPI** class defined in separate [Header](./broker/include/webAPI.h) and [Src](./broker/src/webAPI.cpp) files.
+Pointing out the `OPENING_REQUEST` type, the Broker will use our **WebAPI** class defined in separate [Header](nodes/broker/include/webAPI.h) and [Src](nodes/broker/src/webAPI.cpp) files.
 
 In this class, we start by defining the WiFi network *SSID* and Password (needs internet access), as well as the *URL* for the AWS instance. Then the path of the requests/post will be making:
 ```c++
@@ -1212,7 +1212,7 @@ bool WebAPI::post_discovery(uint16_t nodeId, uint16_t userId,
 
 Some of the core here used was derived from examples in ESP32IO. [^9]
 
-**Note**: Before integrating the HTTP library into the **Broker**, we developed the [httpRequester](./httpRequester/httpRequester.ino) *Arduino* project, to test the HTTP library and functions.
+**Note**: Before integrating the HTTP library into the **Broker**, we developed the [httpRequester](nodes/httpRequester/httpRequester.ino) *Arduino* project, to test the HTTP library and functions.
 
 ---
 ## Results and Analysis
