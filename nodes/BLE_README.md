@@ -2,11 +2,11 @@
 
 ## Why BLE?
 
-In geocaching is very important for the people to be able to guide themselves with some mechanism helping through the path. Normally the technology chosen for this goal is GPS. However, in certain locations the GPS signal might be weak or inexistent, leading to more difficulties on finding the stashes by the players.
-Bluetooth Low Energy (BLE) comes in clutch in this situation, since it can be used between two devices with it, meaning we can use it to create a communication between the cache and the user's phone. This way, when the user gets close enough of the BLE range, he can be guided to the cache, without having to worry about GPS functioning.
+In geocaching is very important for the people playing to be able to guide themselves with some mechanism helping through the path. Normally the technology chosen for this goal is GPS. However, in certain locations the GPS signal might be weak or inexistent, leading to more difficulties on finding the stashes by the players.
+Bluetooth Low Energy (BLE) comes in clutch in this situation, since it can be used between two devices with it, meaning we can use it to create a communication between the cache and the user's phone. This way, when the user gets close enough of the BLE range, he can be guided to reach the cache, eliminating concernings about potential GPS malfunctions.
 
 Another problem with the usual geocaching is that bad actors can access the geocache, removing the items from it and not placing anything for the next people to find.
-With our idea, this can be solved. Only when the person is really close to the cache, and confirms that he has found it, the cache opens. By clicking the confirmation, this person's information will be sent from the it's BLE device to the BLE server, that will after communicate by LoRa with the main website, in order to review the information sent and classify the person as authorized, or not, to open the cache.
+With our idea, this can be solved. Only when the person is really close to the cache, and confirms that they have found it, the cache opens. By clicking the confirmation button, this person's information will be sent from the it's BLE device to the BLE server. This information will then be sent using LoRa in order to review it and classify the person as authorized, or not, to open the cache.
 This way, people not using the app or that are non-authorized, can not take what's inside the cache. 
 
 
@@ -15,7 +15,7 @@ This way, people not using the app or that are non-authorized, can not take what
 
 ### BLE Server and Client
 
-In a BLE ecosystem, there are two roles: the server and the client. An ESP32 can function as both. The server advertises its presence to potential clients and holds data that can be read by the latter. Upon detecting a server, the client can form a connection and begin receiving data, enabling point-to-point communication.
+In a BLE ecosystem, there are two roles: the server and the client. At the start we created two projects, one for the client and other for the server using two ESP32s, leveraging their capability to function as both sides. A BLE server is capable of advertising its presence to potential clients and holds data that can be read or modified by the latter. Upon detecting a server, the client can form a connection and begin receiving or sending data, enabling point-to-point communication.
 
 Other communication modes include:
 
@@ -33,12 +33,10 @@ Hierarchical Elements:
 - Profile: A standardized suite of services for a specific application.
 - Service: A bundle of related functionalities, like sensor data or battery levels.
 - Characteristic: The data container within a service.
-- Descriptor: Supplementary information about the characteristic.
+- Descriptor (Optional): Supplementary information about the characteristic.
 - Properties: Interaction rules for the characteristic value, such as read, write, notify, etc.
 
 Each service within a BLE profile comprises at least one characteristic, though it may also reference other services. A characteristic is intrinsically linked to a service and serves as the repository for actual data within the hierarchy, known as the characteristic value. In addition to the characteristic value, every characteristic includes a characteristic declaration, which offers metadata about the data it represents.
-
-A notable feature of characteristics is the 'notify' property. This property enables a characteristic to inform the client of any changes to its value. When enabled, this notification ensures that clients are kept up-to-date with the most current information without the need to continuously poll the characteristic for updates.
 
 The properties describe how the characteristic value can be interacted with. Basically, it contains the operations and procedures that can be used with the characteristic:
 
@@ -60,7 +58,7 @@ Each service, characteristic, and descriptor have a UUID (Universally Unique Ide
 #define CHARACTERISTIC_UUID "beb5483e-36e1-4688-b7f5-ea07361b26a8"
 ```
 
-The following code snippet outlines the server setup process in ESP32:
+The following code outlines the server setup process in ESP32:
 
 ```cpp
 void BleServer::setup() {
@@ -87,7 +85,7 @@ void BleServer::setup() {
     Serial.println();
 }
 ```
-In the setup, we created a BLE device called "Geocache_" followed by node ID. After that we set the BLE device as a server. After that we create a service for the BLE server with the UUID defined above. And then we set the characteristic for that service. And finally we can start the service, and the advertising, so other BLE devices can scan and find this BLE device.
+In the setup, we created a BLE device called "Geocache_" followed by node ID. This BLE device would act as a server. After creating the BLE server, we also created a service with the UUID defined as above. Then we set the characteristic for that service. Finally we started the service, and also advertising it, so other BLE devices can scan/find and access the service provided by this BLE device.
 
 Firstly, to test the communication we used a application named "nRF Connect" and we confirm that the results were shown in the image below.
 
@@ -113,16 +111,15 @@ The integration of these enhancements with trilateration algorithms has led to b
 
 While RSSI is a beneficial tool for BLE-based geocaching, providing a low-cost and energy-efficient solution, it requires careful calibration and filtering to counteract environmental effects and signal fluctuations. These improvements are vital for developing a robust and reliable geocaching experience where traditional GPS may fall short.
 
-### Service and Characteristics
 
 ### BLE Notify (Our method) and User's message to the server
 
-BLE Notify is a feature of the BLE protocol that allows a BLE peripheral device to asynchronously notify a connected device, about changes in its characteristics, for example. 
+BLE Notify is a feature of the BLE protocol that allows a BLE peripheral device to asynchronously notify a connected device, about changes in it's characteristics, for example. 
 We decided to implement a simplified method instead of using this feature.
 
 Before we present our idea, we need to understand the format of the messages we are sending to the server when the user finds the cache. The packet format is shown below:
 
-![BLE Message Format](/images/BLEmessage_format.png "BLE Message Format")
+![BLE Message Format](/nodes/images/BLEmessage_format.png "BLE Message Format")
 
 The two most important fields for our explanation are the packet and user ID's, since the header is only used to occupy an empty space to make sure the message has the correct format and the type corresponds to an opening request.
 
@@ -154,7 +151,5 @@ uint8_t* BleServer::read(uint8_t* len) {
 ```
 
 We came into the conclusion that our method is not the best way to do this but we used it as a workaround in order to do it faster. Ideally, the client should use BLE notify to inform the data has been changed on that characteristic.
-
-### Messages between server and app
 
 
