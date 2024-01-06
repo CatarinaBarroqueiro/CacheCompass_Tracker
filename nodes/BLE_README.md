@@ -126,7 +126,7 @@ The two most important fields for our explanation are the packet and user ID's, 
 The reason of having a packet ID will be described on the next paragraph. The User ID is used to identify the person playing and making sure they have the right to access the cache.
 
 Now that the message form is presented, we can go through our BLE notify replacing method.
-When the user founds the cache and their information is sent to the server, by writing on it's characteristic, the server needs a way of knowing the data has been updated. Our way of doing this was having a packet ID field which will certainly be different for every message sent. The packet ID is incremented every time the user sends a message. When the server receives the information, it verifies if the value on the characteristic has changed or not, guarantying that if it has, the new information is processed.
+When the user founds the cache and their information is sent to the server, by writing on the server's characteristic, the server needs a way of knowing the data has been updated. Our way of doing this was having a packet ID field which will certainly be different for every message sent. The packet ID is incremented every time the user sends a message. When the server receives the information, it verifies if the value on the characteristic has changed or not, guarantying that if it has, the new information is processed.
 
 The function below illustrates the server's procedure for verifying changes in data:
 
