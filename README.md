@@ -640,7 +640,7 @@ As can be viewed in the image bellow, this node uses three communication technol
 
 The final appearance of the GeoCache can be viewed in the following images:
 
-| ![Geocache_1](nodes/images/Geocache_1.jpg) | ![Image 2](./images/Geocache_1.jpg) |
+| ![Geocache_1](nodes/images/Geocache_1.jpg) | ![Image 2](nodes/images/Geocache_1.jpg) |
 | --------------- | --------------- |
 
 <!--
