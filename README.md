@@ -226,7 +226,7 @@ In the upcoming sections analyzing the work done, we urge the reader to give a s
 ## Why BLE?
 
 In geocaching is very important for the people playing to be able to guide themselves with some mechanism helping through the path. Normally the technology chosen for this goal is GPS. However, in certain locations the GPS signal might be weak or inexistent, leading to more difficulties on finding the stashes by the players.
-Bluetooth Low Energy (BLE) comes in clutch in this situation, since it can be used between two devices with it, meaning we can use it to create a communication between the cache and the user's phone. This way, when the user gets close enough of the BLE range, he can be guided to reach the cache, eliminating concernings about potential GPS malfunctions.
+Bluetooth Low Energy (BLE) comes in clutch in this situation, since it can be used between two devices with it, meaning we can use it to create a communication between the cache and the user's phone. This way, when the user gets close enough of the BLE range, he can be guided to reach the cache, eliminating concerns about potential GPS malfunctions.
 
 Another problem with the usual geocaching is that bad actors can access the geocache, removing the items from it and not placing anything for the next people to find.
 With our idea, this can be solved. Only when the person is really close to the cache, and confirms that they have found it, the cache opens. By clicking the confirmation button, this person's information will be sent from the it's BLE device to the BLE server. This information will then be sent using LoRa in order to review it and classify the person as authorized, or not, to open the cache.
@@ -249,7 +249,7 @@ Other communication modes include:
 
 GATT (Generic Attributes) outlines how BLE devices exchange data through a hierarchical structure. This architecture comprises profiles, services, characteristics, and descriptors, with each layer possessing a unique UUID (Universally Unique Identifier) for identification purposes. Below is a depiction of the BLE hierarchy.
 
-![Hierarchy BLE](/nodes/images/ble_profile.png "Hierarchy BLE")
+![Hierarchy BLE](./nodes/images/ble_profile.png "Hierarchy BLE")
 
 Hierarchical Elements:
 
@@ -312,7 +312,7 @@ In the setup, we created a BLE device called "Geocache_" followed by node ID. Th
 
 Firstly, to test the communication we used a application named "nRF Connect" and we confirm that the results were shown in the image below.
 
-![nRF](/nodes/images/nRF.png "nRF")
+![nRF](./nodes/images/nRF.png "nRF")
 
 ### RSSI
 
@@ -322,7 +322,7 @@ To translate the RSSI into a distance measurement, a commonly used formula takes
 
 The formula is as follows:
 
-![RSSI Formula](/nodes/images/formulaRSSI.png "RSSI Formula")
+![RSSI Formula](./nodes/images/formulaRSSI.png "RSSI Formula")
 
 In this formula, Measured Power is a factory-calibrated constant indicating the RSSI value at a one-meter distance from the beacon. RSSI is the current signal strength measured by the receiver. The N factor represents the signal propagation constant or path-loss exponent, which varies depending on environmental factors like walls and other obstacles that could attenuate the signal.
 
@@ -342,7 +342,7 @@ We decided to implement a simplified method instead of using this feature.
 
 Before we present our idea, we need to understand the format of the messages we are sending to the server when the user finds the cache. The packet format is shown below:
 
-![BLE Message Format](/nodes/images/BLEmessage_format.png "BLE Message Format")
+![BLE Message Format](./nodes/images/BLEmessage_format.png "BLE Message Format")
 
 The two most important fields for our explanation are the packet and user ID's, since the header is only used to occupy an empty space to make sure the message has the correct format and the type corresponds to an opening request.
 
@@ -387,7 +387,7 @@ For this implementation, we selected Android Studio as our development environme
 
 ### Login Page
 
-![Login Page](/App/images/loginPage.png "Login Page")
+![Login Page](./App/images/loginPage.png "Login Page")
 
 #### Database access
 
@@ -448,7 +448,7 @@ public void openMainRoom(short userId) {
 
 The next image shown is the layout of the main game page.
 <!-- TODO Change image-->
-![Main Page](/App/images/main_page.png "Main Page")
+![Main Page](./App/images/main_page.png "Main Page")
 
 #### RSSI with Scans and GATT Connection
 
@@ -636,7 +636,7 @@ The GeoCache is the node that represents and interacts with the items and the co
 
 As can be viewed in the image bellow, this node uses three communication technologies, BLE, WiFi and LoRa. Each of this technologies and their objectives will be developed in the following sections.
 
-![GeoCache core](/nodes/images/GeoCache_core.png)
+![GeoCache core](./nodes/images/GeoCache_core.png)
 
 The final appearance of the GeoCache can be viewed in the following images:
 
