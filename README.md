@@ -1220,6 +1220,14 @@ Some of the core here used was derived from examples in ESP32IO. [^9]
 It's our conviction that the work developed in this chapter was fruitful and revealed deeper insights into the world of not only embedded devices, but communication technologies. It proved to be challenging to developed and interact with all the technologies mentioned. The biggest problems we had were working with LoRa especially configuring it in the **ESP32CAM**, with it's limited pin layout and communicating with the BLE app. However, our previous knowledge of some of the technologies here and basic network architecture and design principles enabled us to overcome the challenges posed.
 
 ---
+# Contributors 
+| Contributor           | NMEC   | Contribution Percentage |
+|-----------------------|--------|-------------------------|
+| Catarina Barroqueiro  | 103895 | 25%                     |
+| Gonçalo Silva         | 103244 | 25%                     |
+| Tiago Alves           | 104110 | 25%                     |
+| Rafael Amorim         | 98197  | 25%                     |
+
 # References
 
 [^1]: ESP32 product page: https://www.espressif.com/en/products/socs/esp32
